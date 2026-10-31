@@ -1,0 +1,1851 @@
+<!--
+  Cara buka: klik dua kali index.html (atau seret ke browser). Tidak perlu server, build, atau internet.
+  File: index.html, styles.css, app.js. Progress checklist tersimpan di localStorage browser.
+-->
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UTS Deep Learning BINUS: Materi Interaktif</title>
+<link rel="stylesheet" href="styles.css">
+<script>
+  (function () {
+    var t = null;
+    try { t = localStorage.getItem('uts-theme'); } catch (e) { /* storage blocked */ }
+    document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+  })();
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Lompat ke konten</a>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">UTS Deep Learning <span>BINUS</span></div>
+    <div class="progress">
+      <div class="bar" role="progressbar" aria-label="Progress checklist" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="bar"><span id="bar-fill"></span></div>
+      <span id="progress-text">0 / 0</span>
+    </div>
+    <button type="button" class="ghost" id="theme-toggle" aria-pressed="false">Light mode</button>
+  </div>
+  <nav id="nav" aria-label="Daftar topik"></nav>
+</header>
+
+<main id="main">
+
+<section class="hero">
+  <h1>UTS Deep Learning: 6 topik, satu halaman</h1>
+  <p class="lead">Ujian 100 menit, calculator boleh. Halaman ini dibikin buat latihan, bukan sekadar baca. Tiap topik dijelasin sampai ke dalem: intuisi, mekanisme, rumus, contoh hitung, jebakan ujian, dan kapan pakai apa. Ada juga widget yang bisa dimainin, quiz, dan checklist.</p>
+  <div class="note">
+    <p><strong>Cara pakai.</strong> Baca bagian "Jadi intinya", ikutin urutan sub-bab, mainin widget-nya, kerjain quiz, lalu centang checklist. Progress kesimpan otomatis di browser kamu.</p>
+    <p><strong>Label <span class="tag">tambahan</span></strong> artinya isinya standar textbook atau hitungan buatan sendiri, bukan tulisan di slide dosen atau catatan Notion. Cek lagi sebelum dipakai sebagai jawaban final.</p>
+    <p><strong>Label <span class="tag">Notion</span></strong> artinya isinya dari halaman Notion "UTS Deep Learning" (rangkuman teman), bukan dari slide dosen.</p>
+    <p><strong>Kotak "cek ulang"</strong> muncul kalau sumber saling beda atau ada kalimat yang kelihatannya kurang pas. Teks sumber ditulis apa adanya, lalu jawaban standarnya ditaruh sebagai <span class="tag">tambahan</span>. Jangan diubah diam-diam, tanya dosen kalau ragu.</p>
+    <p><strong>Kode sumber</strong> dirujuk sebagai S01 sampai S07 (nomor session), "catatan" (screenshot catatan belajar), dan "Notion".</p>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Topik kisi-kisi</th><th>Sumber utama</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td><a href="#s1">Limitasi linear model</a></td><td>S01, catatan, Notion</td></tr>
+        <tr><td>2</td><td><a href="#s2">Model training and evaluation (termasuk Regularization)</a></td><td>S02, catatan, Notion</td></tr>
+        <tr><td>3</td><td><a href="#s3">Menghitung arsitektur CNN</a></td><td>S04, catatan (S05 sebagai latar), Notion (soal ada di latihan)</td></tr>
+        <tr><td>4</td><td><a href="#s4">Proses training GAN dan training terbaik</a></td><td>S07, Notion</td></tr>
+        <tr><td>5</td><td><a href="#s5">Studi kasus MLP regresi dan klasifikasi</a></td><td>S03, S02, S01, catatan, Notion</td></tr>
+        <tr><td>6</td><td><a href="#s6">Autoencoder: arsitektur dan tipe</a></td><td>S06, catatan (Notion tidak punya bagian ini)</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ============ TOPIK 1 ============ -->
+<section class="topic" id="s1" data-title="1. Linear">
+  <h2><span class="num">1</span>Limitasi linear model</h2>
+  <p class="src">Sumber: S01 slide 7 sampai 12, S03 slide 21 sampai 22, catatan kisi-kisi nomor 1, Notion bagian "Limitasi linear model".</p>
+
+  <p class="lead">Jadi intinya: model linear cuma bisa bikin batas keputusan lurus. Data dunia nyata jarang selurus itu, jadi model linear underfit. Obatnya nonlinearity (activation) plus hidden layer.</p>
+
+  <h3>Intuisi (versi santai)</h3>
+  <ul>
+    <li>Bayangin kamu cuma dikasih <strong>satu penggaris</strong> buat misahin dua kelompok titik di kertas. Kalau kelompoknya emang bisa dipisah satu garis lurus, aman. Kalau kelompoknya melingkar, berselang-seling, atau berlapis, penggarisnya gak cukup, dan itu bukan salah datanya.</li>
+    <li>Model linear itu kekurangan <strong>kapasitas</strong>, bukan kekurangan data. Makanya error di <em>training set</em> aja udah tinggi. Itu definisi underfitting. (Notion)</li>
+    <li>Jadi kalau di soal ada kata "tidak bisa dipisah garis lurus", otomatis ingat: linear gagal, butuh hidden layer plus activation non-linear.</li>
+  </ul>
+
+  <h3>Mekanisme: kenapa boundary-nya pasti lurus</h3>
+  <p>Perceptron: <code>ŷ = sign(wᵀx + b)</code> (S01 slide 10). Batas antara dua kelas adalah himpunan titik di mana <code>wᵀx + b = 0</code>. Persamaan itu selalu "datar" di ruang inputnya. (Notion)</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Dimensi input</th><th>Bentuk decision boundary</th><th>Persamaan</th></tr></thead>
+      <tbody>
+        <tr><td>2D (2 fitur)</td><td>Garis lurus</td><td><code>w₁x₁ + w₂x₂ + b = 0</code></td></tr>
+        <tr><td>3D (3 fitur)</td><td>Bidang datar</td><td><code>w₁x₁ + w₂x₂ + w₃x₃ + b = 0</code></td></tr>
+        <tr><td>n-dimensi</td><td>Hyperplane</td><td><code>wᵀx + b = 0</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Arti simbol: <code>x</code> vektor fitur, <code>w</code> bobot (arah tegak lurus boundary), <code>b</code> bias (geser boundary dari titik asal), <code>sign</code> bernilai positif atau negatif tergantung sisi mana titik berada. (arti simbol: <span class="tag">tambahan</span> penjelasan geometri standar)</p>
+
+  <div class="trap">
+    <p><strong>Jebakan ujian (Notion):</strong> activation di perceptron <em>tidak</em> membuat boundary melengkung. Threshold tetap dilakukan atas <code>z = wᵀx + b</code> yang linear. Hal yang sama berlaku kalau outputnya sigmoid lalu di-threshold di 0,5.</p>
+    <p><span class="tag">tambahan</span> Kenapa begitu: <code>σ(z) ≥ 0,5</code> persis ketika <code>z ≥ 0</code> (karena σ(0) = 0,5 dan σ naik terus). Jadi batas <code>σ(z) = 0,5</code> sama dengan batas <code>z = 0</code>, yaitu garis lurus yang sama. Sigmoid cuma mengubah skor jadi probabilitas, bentuk boundary tidak berubah.</p>
+  </div>
+
+  <h3>Enam limitasi (rangkuman Notion)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>No</th><th>Limitasi</th><th>Penjelasan singkat</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Hanya boundary lurus</td><td>Tidak bisa membentuk kurva, region kompleks, atau pola berlapis</td></tr>
+        <tr><td>2</td><td>Gagal di XOR</td><td>XOR tidak linearly separable, tidak ada satu garis yang memisahkan kedua kelas (S01 slide 9)</td></tr>
+        <tr><td>3</td><td>Hanya linearly separable</td><td>Perceptron hanya bekerja kalau data bisa dipisah sempurna oleh satu garis</td></tr>
+        <tr><td>4</td><td>Shallow / kapasitas rendah</td><td>Single-layer perceptron hanya bisa menggambar garis lurus (S03 slide 21)</td></tr>
+        <tr><td>5</td><td>Tidak menangkap hubungan non-linear</td><td>Data gambar, teks, audio biasanya non-linear, jadi linear model underfitting</td></tr>
+        <tr><td>6</td><td>Tumpukan linear tetap linear</td><td>Nambah layer tanpa activation tidak menambah kemampuan</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>XOR: kenapa gak bisa, dibuktikan</h3>
+  <p>XOR menghasilkan 1 kalau input berbeda, 0 kalau sama. Titik (0,0) dan (1,1) kelas 0, titik (0,1) dan (1,0) kelas 1. Kalau digambar, dua titik kelas 1 ada di diagonal berlawanan dari dua titik kelas 0, jadi mau garis horizontal, vertikal, atau diagonal selalu ada titik yang nyasar. (S01 slide 9, Notion)</p>
+  <div class="worked">
+    <p><strong>Bukti aljabar</strong> <span class="tag">tambahan</span> (biar kamu yakin, bukan buat dihafal). Misal ada <code>w₁, w₂, b</code> yang benar di keempat titik, dengan aturan "kelas 1 kalau <code>z ≥ 0</code>":</p>
+    <ol>
+      <li>(0,0) kelas 0: <code>b &lt; 0</code></li>
+      <li>(0,1) kelas 1: <code>w₂ + b ≥ 0</code></li>
+      <li>(1,0) kelas 1: <code>w₁ + b ≥ 0</code></li>
+      <li>(1,1) kelas 0: <code>w₁ + w₂ + b &lt; 0</code></li>
+    </ol>
+    <p>Jumlahkan (2) dan (3): <code>w₁ + w₂ + 2b ≥ 0</code>, jadi <code>w₁ + w₂ + b ≥ −b</code>. Karena <code>b &lt; 0</code>, nilai <code>−b</code> positif, sehingga <code>w₁ + w₂ + b &gt; 0</code>. Ini bertabrakan dengan (4). Tidak ada bobot yang memenuhi keempatnya, jadi maksimal 3 dari 4 titik benar. Widget XOR di bawah ngasih bukti visual yang sama.</p>
+  </div>
+
+  <div class="widget" id="w-xor">
+    <h4>Widget: coba pisahin XOR dengan satu garis</h4>
+    <p class="hint">Pilih gate dan model. Geser bobot sampai semua titik benar. Lingkaran = target 1, kotak = target 0. Titik penuh = tebakan benar, titik kosong = salah. Warna latar = prediksi model di area itu.</p>
+    <div class="controls">
+      <label>Gate
+        <select id="xor-gate">
+          <option value="and">AND</option>
+          <option value="or">OR</option>
+          <option value="xor" selected>XOR</option>
+        </select>
+      </label>
+      <label>Model
+        <select id="xor-mode">
+          <option value="lin">Linear: sign(w1·x1 + w2·x2 + b)</option>
+          <option value="feat">Linear + fitur manual x1·x2</option>
+          <option value="mlp">MLP 1 hidden layer (2 neuron, bobot tetap)</option>
+        </select>
+      </label>
+    </div>
+    <div class="controls" id="xor-sliders">
+      <label>w1 <output id="xor-w1-o">1.0</output><input type="range" id="xor-w1" min="-3" max="3" step="0.1" value="1"></label>
+      <label>w2 <output id="xor-w2-o">1.0</output><input type="range" id="xor-w2" min="-3" max="3" step="0.1" value="1"></label>
+      <label>b <output id="xor-b-o">-0.5</output><input type="range" id="xor-b" min="-3" max="3" step="0.1" value="-0.5"></label>
+      <label id="xor-w3-wrap">w3 (untuk x1·x2) <output id="xor-w3-o">0.0</output><input type="range" id="xor-w3" min="-3" max="3" step="0.1" value="0"></label>
+    </div>
+    <div class="row">
+      <button type="button" id="xor-brute">Cari bobot terbaik (brute force)</button>
+      <button type="button" class="ghost" id="xor-reset">Reset bobot</button>
+    </div>
+    <div class="grid2">
+      <svg class="plot" id="xor-plot" viewBox="0 0 320 320" role="img" aria-label="Plot titik gate dan area keputusan model"></svg>
+      <div>
+        <div class="readout" id="xor-score" aria-live="polite"></div>
+        <div class="table-wrap"><table id="xor-table"></table></div>
+      </div>
+    </div>
+    <p class="hint">Mode MLP memakai bobot buatan tangan (OR dikurangi AND, lalu dibaca sebagai XOR). <span class="tag">tambahan</span> Konstruksi ini standar di textbook, bukan dari slide.</p>
+  </div>
+
+  <h3>Solusi: MLP (hidden layer + activation non-linear)</h3>
+  <ol>
+    <li>Tambah <strong>hidden layer</strong> di antara input dan output. (Notion)</li>
+    <li>Pasang <strong>activation non-linear</strong> (sigmoid, tanh, ReLU) di tiap layer buat mematahkan sifat linear. Rumus MLP: <code>z = Wx + b</code>, lalu <code>a = σ(z)</code>. (S01 slide 11, Notion)</li>
+    <li><strong>Boundary jadi kurva.</strong> Notion: "dua perceptron menghasilkan dua garis, lalu gabungannya membentuk kurva yang melengkung". Lihat kotak cek ulang di bawah.</li>
+    <li><strong>Hierarchical features:</strong> layer awal menangkap fitur sederhana (tepi), layer dalam menggabungkannya jadi fitur kompleks (bentuk). (Notion, S03 slide 23)</li>
+  </ol>
+  <div class="recheck">
+    <p><strong>Cek ulang.</strong> Teks sumber (Notion): "dua perceptron menghasilkan dua garis, lalu gabungannya membentuk kurva yang melengkung".</p>
+    <p><span class="tag">tambahan</span> Jawaban standar: kalau activation-nya step atau ReLU, gabungan dua garis menghasilkan region yang dibatasi <em>potongan garis lurus</em> (piecewise linear), belum benar-benar melengkung. Kurva halus muncul kalau activation-nya mulus (sigmoid, tanh) dan atau neuronnya banyak, sehingga potongan-potongan kecil mendekati kurva. Slide S03 slide 22 nulis "decision boundaries become curves, complex regions", jadi di jawaban ujian aman tulis "boundary jadi non-linear (kurva atau region kompleks)".</p>
+  </div>
+
+  <h3>Contoh hitung 1: AND dengan satu perceptron, XOR dengan dua hidden neuron</h3>
+  <div class="worked">
+    <p><span class="tag">tambahan</span> Konstruksi standar textbook, sama dengan mode "MLP" di widget XOR.</p>
+    <p><strong>AND, satu neuron:</strong> <code>w = (1, 1)</code>, <code>b = −1,5</code>, kelas 1 kalau <code>z ≥ 0</code>.</p>
+    <ul>
+      <li>(0,0): z = −1,5 → 0. (0,1): z = −0,5 → 0. (1,0): z = −0,5 → 0. (1,1): z = 0,5 → 1. Benar semua, karena AND linearly separable.</li>
+    </ul>
+    <p><strong>XOR, dua hidden neuron:</strong> <code>h₁ = step(x₁ + x₂ − 0,5)</code> (ini OR), <code>h₂ = step(x₁ + x₂ − 1,5)</code> (ini AND), output <code>y = step(h₁ − h₂ − 0,5)</code>.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>x₁</th><th>x₂</th><th>h₁ (OR)</th><th>h₂ (AND)</th><th>z output = h₁ − h₂ − 0,5</th><th>y</th></tr></thead>
+        <tbody>
+          <tr><td>0</td><td>0</td><td>0</td><td>0</td><td>−0,5</td><td>0</td></tr>
+          <tr><td>0</td><td>1</td><td>1</td><td>0</td><td>0,5</td><td>1</td></tr>
+          <tr><td>1</td><td>0</td><td>1</td><td>0</td><td>0,5</td><td>1</td></tr>
+          <tr><td>1</td><td>1</td><td>1</td><td>1</td><td>−0,5</td><td>0</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Idenya: "OR tapi bukan AND" sama dengan XOR. Hidden layer mengubah ruang input jadi ruang (h₁, h₂) di mana kelasnya sudah bisa dipisah satu garis.</p>
+  </div>
+
+  <h3>Contoh hitung 2: tumpukan layer linear tetap linear</h3>
+  <div class="worked">
+    <p><span class="tag">tambahan</span> (arah sama dengan S03 slide 22 "power comes from depth and activation").</p>
+    <p>Layer 1: <code>W₁ = [[1, 2], [0, 1]]</code>. Layer 2: <code>W₂ = [2, 1]</code>. Input <code>x = (3, 1)</code>.</p>
+    <ul>
+      <li>Dua langkah: <code>W₁x = (1·3 + 2·1, 0·3 + 1·1) = (5, 1)</code>, lalu <code>W₂(W₁x) = 2·5 + 1·1 = 11</code>.</li>
+      <li>Satu langkah: <code>W₂W₁ = [2·1 + 1·0, 2·2 + 1·1] = [2, 5]</code>, lalu <code>(W₂W₁)x = 2·3 + 5·1 = 11</code>.</li>
+    </ul>
+    <p>Hasilnya sama: dua layer linear = satu layer linear dengan bobot <code>W₂W₁</code>. Tambah 100 layer pun sama, makanya activation wajib ada di antaranya.</p>
+  </div>
+
+  <h3>Fitur manual vs learned features</h3>
+  <ul>
+    <li>Trik klasik: nambah <code>x²</code>, <code>x³</code> ke model linear biar kurvanya bisa nyesuaikin. Itu <strong>fixed basis function</strong>: kamu yang mikir fiturnya. (S01 slide 7, catatan)</li>
+    <li>Masalah 1, <strong>tidak scalable</strong>: kalau ada 100 fitur dan kamu mau semua suku derajat 3, jumlahnya meledak. <span class="tag">tambahan</span> Hitungan: suku derajat 2 saja ada C(101, 2) = 5.050, derajat 3 ada C(102, 3) = 102·101·100 / 6 = 171.700. Itu yang catatan sebut curse of dimensionality.</li>
+    <li>Masalah 2, <strong>bergantung domain knowledge dan bias manusia</strong>: satu fitur penting kelewat, modelnya jelek. Fitur kaku juga gagal waktu ada variasi baru (posisi miring, cahaya beda, sudut kamera beda). (catatan)</li>
+    <li>Deep learning: fitur dipelajari sendiri dari data mentah, mulai dari tepi, tekstur, sampai bentuk. Deep learning cocok untuk unstructured data (S01 slide 5, 7).</li>
+  </ul>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Aspek</th><th>Traditional ML</th><th>Deep Learning</th></tr></thead>
+      <tbody>
+        <tr><td>Feature engineering</td><td>Manual</td><td>Otomatis</td></tr>
+        <tr><td>Input</td><td>Structured</td><td>Unstructured</td></tr>
+        <tr><td>Layers</td><td>Shallow</td><td>Deep</td></tr>
+        <tr><td>Scalability</td><td>Moderate</td><td>High</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Universal Approximation Theorem:</strong> MLP dengan satu hidden layer bisa mengaproksimasi fungsi kontinu apa pun. Di praktik, model yang lebih dalam lebih efisien. (S01 slide 12, Notion: "cukup satu hidden layer?" jawab secara teori cukup, tapi yang dalam lebih efisien)</p>
+
+  <h3>Kapan pakai apa</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Situasi</th><th>Pilihan</th></tr></thead>
+      <tbody>
+        <tr><td>Data jelas linearly separable, data tabular kecil, mau model simple dan mudah dijelasin</td><td>Model linear / perceptron <span class="tag">tambahan</span></td></tr>
+        <tr><td>Hubungan melengkung tapi cuma satu atau dua fitur, kamu tahu bentuknya</td><td>Linear + fitur polinomial (x², x³) <span class="tag">tambahan</span></td></tr>
+        <tr><td>Gambar, teks, audio, pola abstrak, fitur banyak</td><td>MLP atau deep model dengan activation non-linear (fitur dipelajari sendiri)</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Jebakan ujian (rangkuman)</h3>
+  <div class="trap">
+    <ul>
+      <li>"Tambah layer tapi tanpa activation" → tetap linear.</li>
+      <li>"Perceptron + sigmoid / threshold" → boundary tetap lurus.</li>
+      <li>"Regresi linear untuk data berbentuk kurva" → underfitting, solusinya fitur non-linear atau MLP.</li>
+      <li>Linear model gagal itu masalah <em>kapasitas</em> (underfitting), bukan overfitting.</li>
+      <li>Universal Approximation Theorem bukan berarti satu hidden layer selalu praktis. Teori cukup, praktik lebih dalam lebih efisien.</li>
+    </ul>
+  </div>
+
+  <h3>Kata kunci soal → jawaban (Notion)</h3>
+  <div class="widget" id="w-kw">
+    <h4>Widget: kata kunci soal → jawaban</h4>
+    <p class="hint">Pilih kata kunci yang muncul di soal kasus. Isi jawabannya dari tabel Notion.</p>
+    <div class="controls">
+      <label>Kata kunci di soal
+        <select id="kw-sel"></select>
+      </label>
+    </div>
+    <div class="readout" id="kw-out" aria-live="polite"></div>
+  </div>
+
+  <h3>Latihan</h3>
+  <div class="quiz" data-quiz="s1"></div>
+
+  <h3>Soal gaya kisi-kisi</h3>
+  <details>
+    <summary>Nomor 1: peneliti pakai model linear + fitur x², x³ untuk prediksi permintaan listrik. Jawaban?</summary>
+    <div>
+      <p><strong>(1) Keterbatasan model linear:</strong> cuma bikin batas keputusan lurus (hyperplane), padahal pola nyata melengkung. Fitur x² dan x³ ditambah supaya kurvanya bisa menyesuaikan. Cara ini tidak fleksibel dan susah di-scale: kalau ada 100 fitur, kombinasi manualnya meledak (curse of dimensionality).</p>
+      <p><strong>(2) Keterbatasan fitur manual (fixed basis functions):</strong></p>
+      <ul>
+        <li>Bergantung pada domain knowledge dan bias manusia. Kalau satu fitur penting kelewat, modelnya jelek.</li>
+        <li>Fitur kaku, gagal generalisasi pada variasi baru (posisi miring, cahaya beda, sudut kamera beda).</li>
+      </ul>
+      <p>Pembanding: CNN belajar sendiri dari gambar mentah, mulai dari tepi, tekstur, sampai bentuk. (catatan)</p>
+    </div>
+  </details>
+  <details>
+    <summary>Kenapa single-layer perceptron gagal di XOR, dan bagaimana MLP memperbaikinya?</summary>
+    <div>
+      <ol>
+        <li>XOR tidak linearly separable. Perceptron membuat boundary <code>wᵀx + b = 0</code>, yaitu satu garis lurus, sehingga paling banyak 3 dari 4 titik benar.</li>
+        <li>MLP menambah hidden layer dengan activation non-linear. Hidden neuron pertama jadi detektor OR, kedua detektor AND, output mengambil "OR tapi bukan AND".</li>
+        <li>Hidden layer mengubah representasi input sampai kelasnya bisa dipisah linear di ruang hidden, dan fitur dipelajari berlapis (sederhana ke kompleks).</li>
+        <li>Tanpa activation, tumpukan layer tetap satu transformasi linear, jadi activation non-linear wajib.</li>
+      </ol>
+    </div>
+  </details>
+
+  <h3>Checklist</h3>
+  <p class="cl-count" data-clcount="s1"></p>
+  <ul class="checklist" data-checklist="s1"></ul>
+
+  <p class="next-link">Lanjut: <a href="#s2">Topik 2, cara model dilatih dan dinilai</a>. Setelah tahu kenapa butuh model non-linear, sekarang belajar cara ngelatihnya.</p>
+</section>
+
+<!-- ============ TOPIK 2 ============ -->
+<section class="topic" id="s2" data-title="2. Training">
+  <h2><span class="num">2</span>Model training and evaluation</h2>
+  <p class="src">Sumber: S02 (semua slide), S01 slide 17 sampai 22, catatan regularisasi, Notion bagian "Model Training and Evaluation". Daftar isi: <a href="#s2-gd">gradient descent</a>, <a href="#s2-opt">optimizer</a>, <a href="#s2-lr">learning rate</a>, <a href="#s2-init">init dan activation</a>, <a href="#s2-over">overfitting</a>, <a href="#s2-reg">regularization</a>, <a href="#s2-eval">evaluasi</a>, <a href="#s2-sym">gejala → tindakan</a>, <a href="#s2-essay">essay</a>.</p>
+
+  <p class="lead">Jadi intinya: training itu minimalin loss lewat gradient descent. Hasil bagus butuh optimizer, learning rate, init, dan regularisasi yang pas. Lalu dinilai pakai metrik yang cocok, bukan asal accuracy.</p>
+
+  <h3>Peta besar</h3>
+  <ol>
+    <li>Pilih <strong>loss</strong> yang cocok tugas, lalu minimalkan lewat <strong>gradient descent</strong> dan <strong>optimizer</strong>.</li>
+    <li>Atur <strong>learning rate</strong> (dan schedule), <strong>initialization</strong>, dan <strong>activation</strong> supaya gradient sehat.</li>
+    <li>Jaga <strong>generalisasi</strong>: kenali overfitting, pakai <strong>regularization</strong>.</li>
+    <li>Nilai pakai <strong>metrik</strong> yang tahan class imbalance dan sesuai tujuan aplikasi.</li>
+  </ol>
+
+  <h3 id="s2-gd">Optimization dan gradient descent</h3>
+  <p><strong>Intuisi.</strong> Bayangin kamu di gunung berkabut dan mau turun ke lembah (loss paling kecil). Kamu gak lihat peta, tapi bisa rasain kemiringan tanah di bawah kaki. Tiap langkah, kamu melangkah ke arah yang paling menurun. Itu gradient descent. (analogi: <span class="tag">tambahan</span>)</p>
+  <p><strong>Mekanisme.</strong> Optimization = minimalin loss function dengan nyetel weights dan bias secara iteratif (S02 slide 6). Tujuannya cari bobot dan bias θ yang bikin tebakan model di putaran berikutnya makin dekat ke kebenaran. (Notion)</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Update rule</th><th>Arti simbol</th></tr></thead>
+      <tbody>
+        <tr><td><code>θ ← θ − η ∇θ L</code> (S02 slide 7)</td><td>θ = parameter (weights dan bias). η = learning rate (ukuran langkah). L = loss. ∇θ L = gradient loss terhadap θ.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Kenapa tanda minus?</strong> Gradien menunjuk ke arah loss <em>naik</em> paling cepat. Kita mau loss turun, jadi melangkah berlawanan arah gradien, makanya minus. (Notion) Kalau salah ketik jadi plus, model malah naik gunung.</p>
+
+  <div class="worked">
+    <p><strong>Contoh hitung</strong> <span class="tag">tambahan</span> (fungsi mainan <code>L(θ) = θ²</code>, gradien <code>2θ</code>, mulai θ = 3, jadi L = 9).</p>
+    <ul>
+      <li>η = 0,1: gradien = 6, θ₁ = 3 − 0,1·6 = <strong>2,4</strong>. Gradien = 4,8, θ₂ = 2,4 − 0,48 = <strong>1,92</strong>. Mendekati 0, benar.</li>
+      <li>Tanda salah (plus), η = 0,1: θ₁ = 3 + 0,6 = 3,6, L = 12,96 &gt; 9. Loss naik, bukan turun.</li>
+      <li>η terlalu besar = 1,1: gradien 6, θ₁ = 3 − 1,1·6 = −3,6. Gradien = −7,2, θ₂ = −3,6 + 7,92 = <strong>4,32</strong>. Nilai |θ| membesar 3 → 3,6 → 4,32 (dikali 1,2 tiap langkah), loss diverge. Rumus umumnya θ ← (1 − 2η)θ, jadi stabil kalau |1 − 2η| &lt; 1, yaitu 0 &lt; η &lt; 1.</li>
+    </ul>
+  </div>
+  <div class="widget" id="w-gd">
+    <h4>Widget: gradient descent langkah demi langkah, kenapa minus</h4>
+    <p class="hint">Fungsi mainan <span class="tag">tambahan</span>: L(θ) = θ², gradien = 2θ, mulai dari θ = 3. Ubah learning rate dan tanda update, lihat apakah loss turun.</p>
+    <div class="controls">
+      <label>Learning rate (η) <output id="gd-eta-o">0.10</output>
+        <input type="range" id="gd-eta" min="0.01" max="1.3" step="0.01" value="0.1">
+      </label>
+      <label>Tanda update
+        <select id="gd-sign">
+          <option value="minus">θ ← θ − η·gradien (benar)</option>
+          <option value="plus">θ ← θ + η·gradien (salah, untuk perbandingan)</option>
+        </select>
+      </label>
+    </div>
+    <div class="table-wrap"><table id="gd-table"></table></div>
+    <div class="readout" id="gd-read" aria-live="polite"></div>
+  </div>
+
+  <h4>Batch, SGD, mini-batch</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Varian</th><th>Data per update</th><th>Ciri</th><th>Update per epoch (N = 1000)</th></tr></thead>
+      <tbody>
+        <tr><td>Batch GD</td><td>Seluruh data</td><td>Stabil, tapi lambat</td><td>1</td></tr>
+        <tr><td>SGD (stochastic)</td><td>1 sampel</td><td>Lebih cepat, lebih noisy</td><td>1000</td></tr>
+        <tr><td>Mini-batch GD</td><td>Sebagian kecil (batch)</td><td>Kompromi stabilitas dan kecepatan, paling umum (Notion)</td><td>10 kalau batch = 100 <span class="tag">tambahan</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Sumber: S02 slide 8, Notion. Kolom terakhir hitungan sendiri: 1000 / 100 = 10 update per epoch.</p>
+
+  <h3 id="s2-opt">Optimizer</h3>
+  <p>Optimizer = mekanisme pintar yang melakukan update bobot berulang dan otomatis sampai loss kecil. (Notion) Intuisi singkat tiap optimizer:</p>
+  <ul>
+    <li><strong>SGD:</strong> langkah murni ikut gradien sekarang.</li>
+    <li><strong>Momentum:</strong> ada "kecepatan" dari gradien sebelumnya, kayak bola menggelinding yang gak langsung berhenti. <span class="tag">tambahan</span> Bentuk standar: <code>v ← βv + g</code>, <code>θ ← θ − ηv</code>. Contoh: gradien konstan g = 1, β = 0,9 → v₁ = 1, v₂ = 0,9·1 + 1 = 1,9, v₃ = 0,9·1,9 + 1 = 2,71. Kecepatan menumpuk (batas atasnya g / (1 − β) = 10), jadi konvergen lebih cepat di jalur yang konsisten.</li>
+    <li><strong>RMSProp:</strong> skala learning rate per parameter berdasarkan riwayat gradien. <span class="tag">tambahan</span> Parameter yang gradiennya selalu besar dapat langkah dibagi besar, yang kecil dapat langkah relatif lebih besar, jadi ukuran langkah lebih merata.</li>
+    <li><strong>Adam:</strong> gabungan Momentum dan RMSProp, jadi ada "kecepatan" dan langkah adaptif.</li>
+  </ul>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Optimizer</th><th>Ide utama</th><th>Plus</th><th>Minus</th><th>Kapan dipakai</th></tr></thead>
+      <tbody>
+        <tr><td>SGD</td><td>Update dasar</td><td>Simple, kontrol penuh</td><td>Sensitif ke LR</td><td>Mau kontrol lebih dan regularisasi eksplisit</td></tr>
+        <tr><td>Momentum</td><td>Nambah velocity dari gradien sebelumnya</td><td>Konvergen lebih cepat</td><td>Perlu tuning</td><td>Problem yang cenderung convex (menurut slide)</td></tr>
+        <tr><td>RMSProp</td><td>Skala LR dari riwayat gradient</td><td>Stabil</td><td>Sensitif</td><td>Sering dipakai di RNN</td></tr>
+        <tr><td>Adam</td><td>Momentum + RMSProp</td><td>Populer, adaptif</td><td>Bisa overfit (menurut slide)</td><td>Default terbaik untuk kebanyakan kasus</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Sumber: S02 slide 10 dan 11, Notion. Rumus per optimizer (kecuali update dasar) tidak ada di slide, jadi bagian momentum dan RMSProp di atas cuma buat intuisi.</p>
+  <div class="trap">
+    <p><strong>Jebakan ujian:</strong> optimizer itu <em>cara</em> update, loss itu <em>apa yang diminimalkan</em>. Jangan ketuker. Dan "Adam default terbaik" bukan berarti Adam selalu menang, SGD dipilih kalau mau kontrol dan regularisasi.</p>
+  </div>
+
+  <h3 id="s2-lr">Learning rate dan schedule</h3>
+  <ul>
+    <li><strong>Terlalu tinggi:</strong> loss melompat-lompat atau divergen. Model melangkah kelewatan, contoh Notion: yang hampir pas di 1,0 tiba-tiba loncat ke −5,0. (S02 slide 12, Notion)</li>
+    <li><strong>Terlalu rendah:</strong> konvergensi sangat lambat, langkah kayak semut. (S02 slide 12, Notion)</li>
+    <li><strong>Schedule:</strong> learning rate diturunkan bertahap seiring epoch. Step decay (turun tiap sekian epoch), exponential decay, cosine annealing (S02 slide 12), plus <strong>reduce on plateau</strong> (turun kalau loss berhenti membaik, ini tambahan dari Notion, tidak ada di slide). Idenya: langkah besar di awal buat maju cepat, langkah kecil di akhir biar pas di dasar lembah.</li>
+  </ul>
+  <div class="worked">
+    <p><strong>Contoh hitung</strong> <span class="tag">tambahan</span> (rumus bentuk standar, slide cuma menyebut namanya). η₀ = 0,1.</p>
+    <ul>
+      <li>Step decay, ×0,5 tiap 15 epoch: epoch 0 sampai 14 → 0,1. Epoch 15 sampai 29 → 0,05. Epoch 30 sampai 44 → 0,025.</li>
+      <li>Exponential, ×0,95 per epoch: epoch 10 → 0,1 · 0,95¹⁰ = 0,0599.</li>
+      <li>Cosine annealing, <code>η = η₀ · 0,5 · (1 + cos(πt/T))</code>, T = 60: t = 15 → 0,1 · 0,5 · (1 + 0,7071) = 0,0854. t = 30 → 0,05. t = 60 → 0.</li>
+    </ul>
+  </div>
+
+  <div class="widget" id="w-opt">
+    <h4>Widget: learning rate dan optimizer vs loss curve</h4>
+    <p class="hint">Loss yang dioptimasi: L = 0,5·(x² + 10·y²), mulai dari (4, 1). Ini fungsi mainan <span class="tag">tambahan</span> untuk lihat efek LR. Sumbu Y dalam skala log10(loss). Rumus update tiap optimizer pakai versi standar.</p>
+    <div class="controls">
+      <label>Optimizer
+        <select id="opt-algo">
+          <option value="sgd">SGD</option>
+          <option value="mom">Momentum (β = 0,9)</option>
+          <option value="rms">RMSProp</option>
+          <option value="adam">Adam</option>
+        </select>
+      </label>
+      <label>LR schedule
+        <select id="opt-sched">
+          <option value="none">Konstan</option>
+          <option value="step">Step decay (×0,5 tiap 15 step)</option>
+          <option value="exp">Exponential decay (×0,95 per step)</option>
+          <option value="cos">Cosine annealing</option>
+        </select>
+      </label>
+      <label>Learning rate (η) <output id="opt-lr-o">0.05</output>
+        <input type="range" id="opt-lr" min="-3" max="-0.3" step="0.05" value="-1.3">
+      </label>
+    </div>
+    <svg class="plot" id="opt-plot" viewBox="0 0 480 240" role="img" aria-label="Kurva loss terhadap step"></svg>
+    <div class="readout" id="opt-read" aria-live="polite"></div>
+  </div>
+
+  <h3 id="s2-init">Initialization</h3>
+  <p><strong>Intuisi.</strong> Init itu titik awal pendakian. Titik awal jelek bikin training lambat atau gagal total. Tujuannya jaga activation dan gradient tetap di rentang wajar, hindari saturasi dan exploding activations. (S02 slide 16, Notion)</p>
+  <ul>
+    <li><strong>Saturasi dan vanishing gradient.</strong> Kurva sigmoid berbentuk S dan di ujung atas atau bawahnya sangat datar. Bobot awal terlalu besar melempar input ke ujung datar itu (saturasi). Gradien dihitung dari kemiringan kurva, jadi di sana gradiennya hampir nol, dan lapisan-lapisan awal berhenti belajar. (Notion, S01 slide 19)</li>
+    <li><strong>Exploding activations.</strong> Bobot awal terlalu besar, tiap layer mengalikan dengan angka besar terus-menerus, nilainya meledak sampai overflow, training hancur. (Notion, S01 slide 20)</li>
+  </ul>
+  <div class="worked">
+    <p><strong>Contoh hitung</strong> <span class="tag">tambahan</span> (turunan sigmoid <code>σ'(z) = σ(z)(1 − σ(z))</code>, nilai maksimumnya 0,25).</p>
+    <ul>
+      <li>z = 0: σ' = 0,5 · 0,5 = <strong>0,25</strong>. z = 5: σ = 0,9933, σ' ≈ <strong>0,0066</strong>. z = 10: σ' ≈ <strong>0,000045</strong>. Makin saturasi, gradien makin mati.</li>
+      <li>Rantai 10 layer sigmoid, kasus terbaik tiap layer 0,25: 0,25¹⁰ ≈ 9,5 × 10⁻⁷. Gradien yang sampai ke layer pertama tinggal sepersejuta, itu vanishing gradient.</li>
+    </ul>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Metode</th><th>Dipakai untuk</th><th>Catatan</th><th>Variance bobot <span class="tag">tambahan</span></th></tr></thead>
+      <tbody>
+        <tr><td>Xavier (Glorot)</td><td>Sigmoid, tanh</td><td>Mengontrol varians</td><td><code>2 / (fan_in + fan_out)</code></td></tr>
+        <tr><td>He</td><td>ReLU</td><td>Populer untuk jaringan dalam dengan ReLU</td><td><code>2 / fan_in</code></td></tr>
+        <tr><td>Uniform</td><td>Default</td><td>Kadang tidak stabil</td><td>-</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Sumber: S02 slide 17, S01 slide 22 ("set based on fan-in/fan-out"), Notion. Contoh angka <span class="tag">tambahan</span>: fan_in = 256, fan_out = 128. Std He = √(2/256) = 0,0884. Std Xavier = √(2/384) = 0,0722. Alasan He lebih besar: ReLU membuang setengah aktivasi (yang negatif), jadi bobot perlu sedikit lebih besar supaya variance tidak menyusut.</p>
+
+  <h3>Activation function</h3>
+  <p>Activation ada di tiap layer neuron untuk menyaring angka supaya jaringan bisa menangkap pola non-linear. (Notion)</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Activation</th><th>Range output</th><th>Dipakai untuk</th></tr></thead>
+      <tbody>
+        <tr><td>Sigmoid</td><td>(0, 1)</td><td>Output klasifikasi biner</td></tr>
+        <tr><td>Tanh</td><td>(−1, 1)</td><td>Hidden layer (sering pada LSTM)</td></tr>
+        <tr><td>ReLU</td><td>[0, ∞)</td><td>Hidden layer, default umum</td></tr>
+        <tr><td>Leaky ReLU</td><td>(−∞, ∞)</td><td>Hidden layer, mengatasi neuron mati</td></tr>
+        <tr><td>Maxout</td><td>(−∞, ∞)</td><td>Varian khusus</td></tr>
+        <tr><td>ELU</td><td>(−α, ∞)</td><td>Varian lembut untuk nilai negatif</td></tr>
+        <tr><td>Softmax</td><td>(0, 1) per kelas, total = 1</td><td>Output multiklas</td></tr>
+        <tr><td>Linear</td><td>(−∞, ∞)</td><td>Output regresi</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Sumber: Notion (tabel ini tidak ada di teks slide S02; S01 slide 13 berupa gambar daftar activation umum).</p>
+  <div class="trap">
+    <p><strong>Jebakan: Dying ReLU.</strong> ReLU keluarin 0 untuk semua input negatif (S02 slide 18). Kalau input neuron selalu negatif, output nol, gradien juga nol, bobotnya gak pernah update, dan neuron "mati" permanen. Pemicu umum: learning rate terlalu besar sehingga bobot melompat ke area negatif. Neuron mati tidak bisa pulih sendiri, jadi yang diubah activation atau learning rate. (Notion)</p>
+    <p><strong>Solusi:</strong> Leaky ReLU atau parametric ReLU (PReLU), yang memberi gradien kecil untuk input negatif. Contoh Notion: input −10 dengan pengali 0,01 → −10 × 0,01 = −0,1, bukan 0.</p>
+  </div>
+
+  <h3 id="s2-over">Overfitting</h3>
+  <p><strong>Intuisi.</strong> Overfit itu anak yang ngapalin kunci jawaban latihan soal, tapi bingung waktu soal ujiannya beda. Model belajar noise atau pola tidak relevan (S02 slide 20), biasanya karena terlalu kompleks untuk jumlah data. (Notion)</p>
+  <p><strong>Tandanya:</strong> training loss terus turun, validation loss <em>naik</em>. Kuncinya ada di gap, bukan di nilai training loss yang kecil. (Notion, S01 slide 21)</p>
+
+  <h3 id="s2-reg">Regularization</h3>
+  <p><strong>Definisi.</strong> Regularisasi = teknik yang membatasi kompleksitas model supaya tidak menghafal data training dan bisa generalisasi ke data baru. Slide menyebut empat teknik: L2, dropout, data augmentation, early stopping. L1 ditambahkan karena sering muncul di ujian. (Notion)</p>
+
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Teknik</th><th>Bekerja pada</th><th>Mekanisme inti</th><th>Tipe</th><th>Kapan dipakai</th><th>Keunggulan</th><th>Risiko</th></tr></thead>
+      <tbody>
+        <tr><td>L2 (weight decay)</td><td>Bobot</td><td>Penalti pada bobot besar, <code>L_new = L + λΣw²</code></td><td>Ditambahkan ke loss</td><td>Bobot membesar, model kompleks</td><td>Simple, stabil</td><td>λ terlalu besar bikin underfitting</td></tr>
+        <tr><td>L1 <span class="tag">tambahan</span></td><td>Bobot</td><td>Penalti nilai absolut, <code>L_new = L + λΣ|w|</code></td><td>Ditambahkan ke loss</td><td>Mau seleksi fitur, model sparse</td><td>Bobot tidak penting jadi nol, lebih interpretable</td><td>Kurang halus di beberapa kasus</td></tr>
+        <tr><td>Dropout</td><td>Neuron</td><td>Neuron dimatikan acak saat training</td><td>Saat training</td><td>Jaringan dalam, banyak neuron</td><td>Cegah co-adaptation, paksa jalur redundan</td><td>Training lebih lama, perlu tuning rate (umum 0,2 sampai 0,5)</td></tr>
+        <tr><td>Data augmentation</td><td>Data input</td><td>Transformasi acak (rotasi, crop, flip) pada data training</td><td>Sebelum model, hanya training</td><td>Data sedikit, terutama gambar</td><td>Data lebih beragam tanpa biaya label</td><td>Hanya transformasi yang masuk akal</td></tr>
+        <tr><td>Early stopping</td><td>Proses training</td><td>Pantau validation loss, berhenti saat mulai naik</td><td>Saat training</td><td>Selalu bisa dipakai</td><td>Hemat waktu, cegah overfit, simpan model terbaik</td><td>Butuh validation set yang bagus</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Sumber: S02 slide 20 sampai 25, catatan (screenshot tabel perbedaan), Notion.</p>
+
+  <h4>L2 dan L1: simbol dan kenapa bekerja</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Simbol</th><th>Arti</th></tr></thead>
+      <tbody>
+        <tr><td><code>L</code></td><td>Loss awal (misal BCE atau MSE)</td></tr>
+        <tr><td><code>λ</code></td><td>Kekuatan regularisasi (hyperparameter)</td></tr>
+        <tr><td><code>Σ w²</code></td><td>Jumlah kuadrat semua bobot</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Bobot besar dihukum, jadi model memilih bobot kecil yang lebih halus dan kurang kompleks. (Notion, "ada di kisi-kisi salah satu dosen")</p>
+  <div class="worked">
+    <p><strong>Contoh hitung</strong> <span class="tag">tambahan</span>. Bobot <code>w = (3, −4)</code>, λ = 0,01, loss awal L = 0,5.</p>
+    <ul>
+      <li>Σw² = 9 + 16 = 25. Penalti = 0,01 · 25 = 0,25. L_new = 0,5 + 0,25 = <strong>0,75</strong>.</li>
+      <li>Kenapa disebut weight decay: gradien penalti terhadap w adalah <code>2λw</code>, jadi update menjadi <code>w ← w − η(∂L/∂w + 2λw)</code>. Bagian bobot menyusut tiap langkah dengan faktor <code>1 − 2ηλ</code>. Untuk η = 0,1 dan λ = 0,01, faktornya 1 − 0,002 = 0,998.</li>
+      <li>L1: Σ|w| = 3 + 4 = 7, penalti = 0,07. Gradien penalti <code>λ·sign(w)</code> konstan, jadi bobot kecil bisa didorong sampai tepat nol (itu sebab L1 menghasilkan model sparse).</li>
+    </ul>
+  </div>
+
+  <h4>Dropout, augmentation, early stopping: detail yang sering ditanya</h4>
+  <ul>
+    <li><strong>Hanya saat training.</strong> Dropout dan augmentation aktif di training. Saat evaluasi, semua neuron aktif dan validation/test tidak diaugmentasi. (S02 slide 22 sampai 23, catatan)</li>
+    <li><strong>Cara kerja dropout (<span class="tag">tambahan</span>):</strong> PyTorch biasanya pakai inverted dropout, output dikali <code>1/(1−p)</code> saat training supaya skala tetap. Contoh p = 0,5: aktivasi <code>[1, 2, 3, 4]</code>, mask <code>[1, 0, 1, 0]</code>, hasil <code>[2, 0, 6, 0]</code>. Jadi saat evaluasi tidak perlu penyesuaian. (catatan)</li>
+    <li><strong>Early stopping (<span class="tag">tambahan</span>):</strong> biasanya pakai patience (berapa epoch menunggu) dan simpan checkpoint model terbaik. Notion: "simpan model terbaik sebelum validation loss naik".</li>
+    <li>Hubungan dengan visi: S04 slide 26 menyebut dropout di FC layers, augmentation, batch norm, early stopping untuk CNN.</li>
+  </ul>
+
+  <div class="widget" id="w-over">
+    <h4>Widget: train vs validation loss dan early stopping</h4>
+    <p class="hint">Kurvanya ilustrasi buatan rumus sederhana, bukan hasil training asli. <span class="tag">tambahan</span> Tujuannya lihat pola underfit, fit, overfit, dan efek regularisasi.</p>
+    <div class="controls">
+      <label>Kapasitas model
+        <select id="over-cap">
+          <option value="low">Rendah (underfitting)</option>
+          <option value="mid">Pas</option>
+          <option value="high" selected>Tinggi (rawan overfit)</option>
+        </select>
+      </label>
+      <label>Patience (epoch) <output id="over-pat-o">5</output>
+        <input type="range" id="over-pat" min="1" max="15" step="1" value="5">
+      </label>
+      <label class="field"><span>Regularisasi (L2 / dropout)</span>
+        <span><input type="checkbox" id="over-reg"> aktif</span>
+      </label>
+    </div>
+    <svg class="plot" id="over-plot" viewBox="0 0 480 240" role="img" aria-label="Kurva train dan validation loss"></svg>
+    <div class="readout" id="over-read" aria-live="polite"></div>
+  </div>
+
+  <div class="trap">
+    <p><strong>Jebakan ujian:</strong></p>
+    <ul>
+      <li>λ terlalu besar → underfitting (model terlalu disederhanakan), bukan overfit makin parah.</li>
+      <li>Augmentation dan dropout <em>jangan</em> dipakai di validation atau test.</li>
+      <li>Regularisasi di model yang sudah underfit malah memperburuk.</li>
+      <li>L1 itu <span class="tag">tambahan</span>, dasar jawaban kisi-kisi L2, dropout, augmentation, early stopping.</li>
+    </ul>
+  </div>
+
+  <h4>Kapan pakai apa (regularization)</h4>
+  <ul>
+    <li>Dataset kecil, banyak kemungkinan hafal → augmentation, dropout, early stopping (Notion).</li>
+    <li>Bobot cenderung membesar → L2. Ingin seleksi fitur → L1.</li>
+    <li>Jaringan dalam → dropout. Gambar → augmentation. Tidak mau mikir banyak → early stopping.</li>
+    <li>Biasanya dikombinasi, misal early stopping + dropout + augmentation. <span class="tag">tambahan</span></li>
+  </ul>
+
+  <h3>Train / validation / test</h3>
+  <p><span class="tag">tambahan</span> Slide hanya menyebut "validation loss". Pembagian standarnya:</p>
+  <ul>
+    <li><strong>Train:</strong> data buat update weights.</li>
+    <li><strong>Validation:</strong> buat monitor overfitting, early stopping, dan milih hyperparameter.</li>
+    <li><strong>Test:</strong> dipakai sekali di akhir buat estimasi performa jujur. Jangan dipakai buat tuning.</li>
+  </ul>
+
+  <h3 id="s2-eval">Evaluasi</h3>
+  <p><strong>Prinsip metrik yang baik (S02 slide 27, Notion):</strong> mencerminkan performa nyata untuk tugas, tahan terhadap class imbalance, selaras dengan tujuan bisnis atau aplikasi.</p>
+
+  <h4>Klasifikasi (S02 slide 28)</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Metrik</th><th>Rumus</th><th>Makna</th><th>Pakai kalau</th></tr></thead>
+      <tbody>
+        <tr><td>Accuracy</td><td><code>(TP + TN) / total</code></td><td>Porsi prediksi benar</td><td>Kelas seimbang</td></tr>
+        <tr><td>Precision</td><td><code>TP / (TP + FP)</code></td><td>Dari yang diprediksi positif, berapa yang benar</td><td>Salah alarm mahal (FP bahaya) <span class="tag">tambahan</span></td></tr>
+        <tr><td>Recall</td><td><code>TP / (TP + FN)</code></td><td>Dari yang sebenarnya positif, berapa yang tertangkap</td><td>Kelewatan kasus mahal (FN bahaya) <span class="tag">tambahan</span></td></tr>
+        <tr><td>F1</td><td><code>2·P·R / (P + R)</code></td><td>Rata-rata harmonik precision dan recall</td><td>Kelas imbalance, butuh satu angka</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="worked">
+    <p><strong>Contoh hitung</strong> (angka sama dengan default widget): TP = 40, FP = 10, FN = 20, TN = 930, total 1000.</p>
+    <ul>
+      <li>Accuracy = (40 + 930) / 1000 = <strong>0,97</strong>.</li>
+      <li>Precision = 40 / (40 + 10) = <strong>0,8</strong>. Recall = 40 / (40 + 20) = <strong>0,6667</strong>.</li>
+      <li>F1 = 2 · 0,8 · 0,6667 / (0,8 + 0,6667) = 1,0667 / 1,4667 = <strong>0,7273</strong>. <span class="tag">tambahan</span> Cek silang: F1 = 2TP / (2TP + FP + FN) = 80 / 110 = 0,7273.</li>
+      <li>Accuracy 97% kelihatan keren, tapi recall cuma 67%: 20 dari 60 kasus positif lolos. Itu gunanya lihat lebih dari satu metrik.</li>
+    </ul>
+  </div>
+  <div class="trap">
+    <p><strong>Jebakan imbalance (Notion):</strong> dataset 95% kelas A. Model yang selalu menebak A punya accuracy 95% tapi tidak berguna. Pakai precision, recall, atau F1, dan pertimbangkan class weights atau sampling. Contoh angka: 1000 sampel, 950 kelas A, model tebak A terus: accuracy = 950 / 1000 = 0,95, recall kelas B = 0 / 50 = 0.</p>
+  </div>
+
+  <h4>Regresi (S02 slide 29)</h4>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Metrik</th><th>Rumus</th><th>Ciri</th></tr></thead>
+      <tbody>
+        <tr><td>MSE</td><td><code>(1/n) Σ (y − ŷ)²</code></td><td>Rata-rata error kuadrat, menghukum error besar lebih berat</td></tr>
+        <tr><td>MAE</td><td><code>(1/n) Σ |y − ŷ|</code></td><td>Rata-rata error absolut, lebih tahan outlier</td></tr>
+        <tr><td>R² <span class="tag">tambahan</span> (rumus)</td><td><code>1 − SS_res / SS_tot</code></td><td>Proporsi variansi target yang bisa dijelaskan model</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="worked">
+    <p><strong>Contoh hitung</strong> (angka sama dengan default widget): y = 3; 5; 2,5; 7 dan ŷ = 2,5; 5; 4; 8.</p>
+    <ul>
+      <li>Error y − ŷ = 0,5; 0; −1,5; −1. Kuadrat = 0,25; 0; 2,25; 1. SS_res = 3,5. MSE = 3,5 / 4 = <strong>0,875</strong>.</li>
+      <li>MAE = (0,5 + 0 + 1,5 + 1) / 4 = <strong>0,75</strong>.</li>
+      <li>Rata-rata y = 17,5 / 4 = 4,375. SS_tot = 1,8906 + 0,3906 + 3,5156 + 6,8906 = 12,6875. R² = 1 − 3,5 / 12,6875 = <strong>0,7241</strong>.</li>
+    </ul>
+    <p><strong>MSE vs MAE di depan outlier:</strong> error 1, 1, 1, 10. MSE = (1 + 1 + 1 + 100) / 4 = 25,75. MAE = 13 / 4 = 3,25. Satu outlier mendominasi MSE, jadi pilih MAE kalau tidak mau terlalu dipengaruhi outlier, pilih MSE kalau error besar memang harus dihukum keras.</p>
+  </div>
+
+  <div class="widget" id="w-metrics">
+    <h4>Widget: kalkulator metrik (calculator mode)</h4>
+    <div class="grid2">
+      <div>
+        <p class="hint">Klasifikasi: isi confusion matrix.</p>
+        <div class="controls">
+          <label>TP <input type="number" id="m-tp" min="0" step="1" value="40"></label>
+          <label>FP <input type="number" id="m-fp" min="0" step="1" value="10"></label>
+          <label>FN <input type="number" id="m-fn" min="0" step="1" value="20"></label>
+          <label>TN <input type="number" id="m-tn" min="0" step="1" value="930"></label>
+        </div>
+        <div class="readout" id="m-out" aria-live="polite"></div>
+      </div>
+      <div>
+        <p class="hint">Regresi: isi nilai aktual (y) dan prediksi (ŷ), dipisah koma.</p>
+        <div class="controls">
+          <label>y <input type="text" id="r-y" value="3, 5, 2.5, 7"></label>
+          <label>ŷ <input type="text" id="r-p" value="2.5, 5, 4, 8"></label>
+        </div>
+        <div class="readout" id="r-out" aria-live="polite"></div>
+        <p class="hint">R² = 1 − SS_res / SS_tot <span class="tag">tambahan</span> (slide hanya menyebut definisinya).</p>
+      </div>
+    </div>
+  </div>
+
+  <h3 id="s2-sym">Gejala → diagnosis → tindakan</h3>
+  <p>Ini tabel andalan buat soal kasus (Notion). Pilih gejala di widget, atau baca tabel di bawahnya.</p>
+  <div class="widget" id="w-sym2">
+    <h4>Widget: gejala training → diagnosis → tindakan</h4>
+    <div class="controls">
+      <label>Gejala di soal
+        <select id="sym2-sel"></select>
+      </label>
+    </div>
+    <div class="readout" id="sym2-out" aria-live="polite"></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Gejala di soal</th><th>Diagnosis</th><th>Tindakan</th></tr></thead>
+      <tbody>
+        <tr><td>Training loss turun, validation loss naik</td><td>Overfitting</td><td>L2, dropout, data augmentation, early stopping</td></tr>
+        <tr><td>Loss tinggi di training dan validation</td><td>Underfitting <span class="tag">tambahan</span></td><td>Model lebih besar, kurangi λ, latih lebih lama</td></tr>
+        <tr><td>Loss naik turun liar atau divergen</td><td>Learning rate terlalu tinggi</td><td>Kecilkan learning rate, pakai schedule</td></tr>
+        <tr><td>Loss turun sangat lambat</td><td>Learning rate terlalu rendah</td><td>Naikkan learning rate, pakai schedule</td></tr>
+        <tr><td>Gradien layer awal hampir nol</td><td>Vanishing gradient / saturasi</td><td>Init He atau Xavier, pakai ReLU atau variannya</td></tr>
+        <tr><td>Sebagian neuron ReLU tidak pernah update</td><td>Dying ReLU</td><td>Leaky ReLU atau PReLU, kecilkan learning rate</td></tr>
+        <tr><td>Akurasi tinggi, tapi hanya menebak kelas mayoritas</td><td>Class imbalance</td><td>Class weights atau sampling, ukur dengan F1 atau recall</td></tr>
+        <tr><td>Regresi: tidak mau terpengaruh outlier</td><td>Pilih loss yang tahan outlier</td><td>MAE</td></tr>
+        <tr><td>Regresi: error besar harus dihukum berat</td><td>Pilih loss sensitif</td><td>MSE</td></tr>
+        <tr><td>Butuh training stabil dan cepat sebagai default</td><td>Pilih optimizer adaptif</td><td>Adam</td></tr>
+        <tr><td>Butuh kontrol penuh dan regularisasi eksplisit</td><td>Pilih optimizer sederhana</td><td>SGD</td></tr>
+        <tr><td>Dataset kecil, banyak kemungkinan hafal</td><td>Risiko overfit tinggi</td><td>Augmentation, dropout, early stopping</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 id="s2-essay">Contoh jawaban essay (kerangka Notion)</h3>
+  <p><strong>Soal:</strong> "Model CNN untuk klasifikasi penyakit daun menunjukkan training loss turun hingga 0,05, tetapi validation loss naik sejak epoch 10. Analisis masalahnya dan berikan solusinya."</p>
+  <ol>
+    <li><strong>Diagnosis:</strong> training loss turun dan validation loss naik → overfitting.</li>
+    <li><strong>Penyebab:</strong> model terlalu kompleks atau data terlalu sedikit untuk menggeneralisasi.</li>
+    <li><strong>Solusi:</strong>
+      <ul>
+        <li>Early stopping di sekitar epoch 10, dengan menyimpan checkpoint terbaik.</li>
+        <li>Data augmentation (rotasi, flip, crop) hanya pada data training.</li>
+        <li>Dropout 0,2 sampai 0,5, atau L2 dengan λ yang wajar.</li>
+      </ul>
+    </li>
+    <li><strong>Evaluasi:</strong> ukur dengan validation dan test set, pilih metrik sesuai kelas (misal F1 kalau kelas tidak seimbang).</li>
+  </ol>
+  <div class="recheck">
+    <p><strong>Cek ulang.</strong> Teks sumber (Notion): "Early stopping di epoch 10, dengan menyimpan checkpoint terbaik", padahal soalnya bilang validation loss naik <em>sejak</em> epoch 10.</p>
+    <p><span class="tag">tambahan</span> Jawaban standar: checkpoint terbaik adalah epoch dengan validation loss <em>terendah</em>, yaitu sekitar epoch 9 sampai 10 (sebelum mulai naik). Dengan patience, training baru benar-benar berhenti beberapa epoch setelahnya, lalu bobot dikembalikan ke checkpoint terbaik. Di jawaban tulis "berhenti sekitar epoch 10 dan pakai checkpoint dengan validation loss terendah".</p>
+  </div>
+
+  <h3>Jebakan ujian (rangkuman topik 2)</h3>
+  <div class="trap">
+    <ul>
+      <li>Tanda minus di update rule: gradien menunjuk ke arah naik.</li>
+      <li>Xavier untuk sigmoid/tanh, He untuk ReLU. Jangan kebalik.</li>
+      <li>Dropout dan augmentation hanya saat training.</li>
+      <li>Accuracy tinggi belum tentu bagus kalau imbalance.</li>
+      <li>MAE lebih tahan outlier, MSE menghukum error besar.</li>
+      <li>Dying ReLU tidak pulih sendiri.</li>
+    </ul>
+  </div>
+
+  <h3>Latihan</h3>
+  <div class="quiz" data-quiz="s2"></div>
+
+  <h3>Soal gaya kisi-kisi</h3>
+  <details>
+    <summary>Jelaskan tiga cara mengurangi overfitting dan kapan masing-masing dipakai.</summary>
+    <div>
+      <ol>
+        <li><strong>L2 regularization:</strong> tambah penalti λΣw² ke loss supaya bobot kecil. Dipakai saat bobot membesar atau model terlalu kompleks. Hati-hati, λ terlalu besar bikin underfitting.</li>
+        <li><strong>Dropout:</strong> matikan neuron acak saat training (0,2 sampai 0,5). Dipakai di jaringan dalam. Mencegah co-adaptation.</li>
+        <li><strong>Early stopping:</strong> stop saat validation loss mulai naik. Selalu bisa dipakai, butuh validation set yang baik.</li>
+      </ol>
+      <p>Tambahan lain dari slide: data augmentation untuk data gambar yang sedikit.</p>
+    </div>
+  </details>
+  <details>
+    <summary>Bandingkan SGD, Momentum, RMSProp, dan Adam.</summary>
+    <div>
+      <p>SGD: update dasar, simple, sensitif ke LR, dipilih kalau mau kontrol dan regularisasi. Momentum: nambah velocity, konvergen lebih cepat, perlu tuning, cocok problem convex. RMSProp: skala LR dari riwayat gradient, stabil, sering untuk RNN. Adam: gabungan Momentum dan RMSProp, adaptif dan populer sebagai default, tapi bisa overfit.</p>
+    </div>
+  </details>
+  <details>
+    <summary>Kenapa learning rate yang terlalu tinggi dan terlalu rendah sama-sama bermasalah? Apa solusinya?</summary>
+    <div>
+      <p>Terlalu tinggi: langkah kelewat jauh, loss melompat atau diverge. Terlalu rendah: konvergensi sangat lambat. Solusi: learning rate schedule (step decay, exponential decay, cosine annealing, reduce on plateau), atau pakai optimizer adaptif seperti Adam.</p>
+    </div>
+  </details>
+  <details>
+    <summary>Dataset 95% kelas A. Model selalu menebak A dan accuracy 95%. Apa masalahnya dan solusinya?</summary>
+    <div>
+      <p>Class imbalance: accuracy menipu karena model tidak menangkap kelas minoritas sama sekali (recall minoritas 0). Pakai precision, recall, F1, dan tangani imbalance dengan class weights atau sampling.</p>
+    </div>
+  </details>
+
+  <h3>Checklist</h3>
+  <p class="cl-count" data-clcount="s2"></p>
+  <ul class="checklist" data-checklist="s2"></ul>
+
+  <p class="next-link">Lanjut: <a href="#s3">Topik 3, hitung arsitektur CNN</a>. Di sana kita pakai hal-hal tadi (activation, regularisasi) di model buat gambar.</p>
+</section>
+
+<!-- ============ TOPIK 3 ============ -->
+<section class="topic" id="s3" data-title="3. CNN">
+  <h2><span class="num">3</span>Menghitung arsitektur CNN</h2>
+  <p class="src">Sumber: S04 (konvolusi, stride, padding, pooling, LeNet, VGG), catatan perhitungan CNN, Notion (bilang soal hitung CNN ada di bagian latihan, jadi hitungannya tidak diubah). Rumus output ada di gambar slide 10 dan screenshot catatan, bukan di teks slide.</p>
+
+  <p class="lead">Jadi intinya: hafal tiga hal. Ukuran output spatial, jumlah channel output, dan jumlah parameter. Sisanya tinggal substitusi angka. Tapi kalau kamu ngerti <em>dari mana</em> rumusnya muncul, kamu gak perlu ngafal dan susah salah.</p>
+
+  <h3>Intuisi: kenapa CNN, bukan MLP, untuk gambar</h3>
+  <ul>
+    <li>MLP meratakan gambar jadi satu deret angka, jadi kehilangan hubungan spasial (bentuk, tepi). Parameternya banyak dan rawan overfit karena piksel redundan. (S04 slide 6)</li>
+    <li>CNN pakai <strong>spatial locality</strong> (piksel tetangga saling berhubungan), <strong>shared weights</strong> lewat kernel (kernel yang sama digeser ke seluruh gambar), dan fitur yang <strong>shift-invariant</strong>. Parameter jauh lebih sedikit. (S04 slide 7)</li>
+    <li>Analogi <span class="tag">tambahan</span>: kernel itu kayak kaca pembesar kecil yang digeser ke seluruh foto. Kaca pembesarnya sama terus (bobot dibagi), cuma posisinya yang pindah.</li>
+  </ul>
+  <div class="worked">
+    <p><strong>Seberapa hemat?</strong> <span class="tag">tambahan</span> Input 32×32×3 (3072 angka). Mau menghasilkan output 28×28×10 (7840 angka).</p>
+    <ul>
+      <li>Layer fully connected: 3072 × 7840 + 7840 = <strong>24.092.320</strong> parameter.</li>
+      <li>Layer conv 10 filter 5×5: (5 × 5 × 3 + 1) × 10 = <strong>760</strong> parameter.</li>
+    </ul>
+    <p>Selisihnya jutaan kali, itu inti shared weights.</p>
+  </div>
+
+  <h3>Komponen yang dihitung</h3>
+  <ul>
+    <li><strong>Kernel / filter:</strong> menentukan berapa piksel dilihat sekaligus. Satu kernel menghasilkan satu feature map. Banyak filter jadi tumpukan feature map. (S04 slide 10, 11, 18)</li>
+    <li><strong>Stride:</strong> langkah kernel. Stride lebih besar, output lebih kecil.</li>
+    <li><strong>Padding:</strong> tambah nol di tepi. Same padding menjaga ukuran.</li>
+    <li><strong>Pooling:</strong> max atau average. Kurangi dimensi spasial, bantu translation invariance, hemat komputasi. Tidak punya parameter belajar. <span class="tag">tambahan</span> (fakta "tanpa parameter" itu standar, slide tidak menulisnya)</li>
+    <li><strong>Blok CNN:</strong> Conv, ReLU, Pooling, diulang, lalu Fully Connected, lalu Output (Softmax untuk klasifikasi). (S04 slide 15)</li>
+    <li><strong>Flatten sebelum FC:</strong> C×H×W → (C·H·W). (S04 slide 20)</li>
+    <li><strong>LeNet-5:</strong> Conv, Pool, Conv, Pool, FC, Output. Input 32×32, output 10 kelas. <strong>VGG:</strong> hanya conv 3×3 dan pooling 2×2, sampai 19 layer, input 224×224 RGB. (S04 slide 16, 17)</li>
+  </ul>
+
+  <h3>Rumus wajib</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Yang dicari</th><th>Rumus</th></tr></thead>
+      <tbody>
+        <tr><td>Output lebar</td><td><code>O_w = (W − F_w + 2P) / S + 1</code></td></tr>
+        <tr><td>Output tinggi</td><td><code>O_h = (H − F_h + 2P) / S + 1</code></td></tr>
+        <tr><td>Channel output</td><td>= jumlah filter K</td></tr>
+        <tr><td>Weights per filter</td><td><code>F_h × F_w × C_in</code></td></tr>
+        <tr><td>Parameter per filter</td><td>weights + 1 bias</td></tr>
+        <tr><td>Parameter layer conv</td><td><code>(F_h × F_w × C_in + 1) × K</code></td></tr>
+        <tr><td>Pooling</td><td>Rumus ukuran sama, channel tetap, parameter 0</td></tr>
+        <tr><td>Flatten</td><td><code>C × H × W</code></td></tr>
+        <tr><td>Fully connected <span class="tag">tambahan</span></td><td><code>in × out + out</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Arti simbol: W, H = lebar dan tinggi input. F = ukuran kernel. P = padding (jumlah nol di tiap sisi). S = stride. K = jumlah filter. C_in = channel input.</p>
+  <div class="note">
+    <p>Catatan penting: rumus <code>(W − F + 2P) / S + 1</code> versi satu rumus itu untuk input persegi. Untuk non-persegi, hitung lebar dan tinggi terpisah. (catatan)</p>
+    <p><span class="tag">tambahan</span> Kalau hasil bagi tidak bulat, framework umum membulatkan ke bawah (floor). Untuk S = 1 dan F ganjil, P = (F − 1) / 2 menjaga ukuran (same padding).</p>
+  </div>
+
+  <h3>Dari mana rumus-rumus itu muncul <span class="tag">tambahan</span></h3>
+  <p>Bagian ini penjelasan turunan standar, bukan dari slide. Tujuannya biar rumus masuk akal, bukan sekadar hafalan.</p>
+  <h4>1. Ukuran output: hitung berapa kali kernel bisa "mendarat"</h4>
+  <ol>
+    <li>Setelah padding, lebar efektif input = <code>W + 2P</code> (nol ditambah di kiri dan kanan).</li>
+    <li>Kernel selebar F menempati posisi mulai dari 0. Posisi mulai terakhir yang masih muat adalah <code>W + 2P − F</code>.</li>
+    <li>Kernel bergeser tiap S piksel, jadi posisi mulainya 0, S, 2S, ... Banyak posisi = <code>⌊(W + 2P − F) / S⌋ + 1</code>. Angka "+1" muncul karena posisi pertama (0) ikut dihitung.</li>
+    <li>Kalau (W + 2P − F) tidak habis dibagi S, sisa piksel di ujung tidak cukup buat satu posisi penuh, makanya dibulatkan ke bawah (floor).</li>
+  </ol>
+  <h4>2. Kenapa P = (F − 1) / 2 menjaga ukuran saat S = 1</h4>
+  <p>Mau output = input, jadi <code>W − F + 2P + 1 = W</code>. Sederhanakan: <code>2P = F − 1</code>, sehingga <code>P = (F − 1) / 2</code>. Untuk F = 3, P = 1. Untuk F = 5, P = 2. Untuk F genap, P-nya pecahan, makanya same padding ideal dengan kernel ganjil.</p>
+  <h4>3. Kenapa parameter = (F × F × C_in + 1) × K</h4>
+  <ul>
+    <li>Satu filter harus menutupi semua channel input, jadi bentuknya F × F × C_in. Itu weights per filter.</li>
+    <li>Tiap filter punya satu bias (satu angka yang ditambahkan ke seluruh feature map-nya). Jadi parameter per filter = F·F·C_in + 1.</li>
+    <li>Ada K filter, tiap filter menghasilkan satu feature map. Maka channel output = K dan total parameter = (F·F·C_in + 1) × K.</li>
+    <li>Ukuran gambar (W, H) tidak muncul di rumus parameter. Itu karena bobot dipakai ulang di semua posisi (shared weights). Gambar lebih besar berarti output lebih besar, bukan parameter lebih banyak.</li>
+  </ul>
+  <h4>4. Receptive field: seberapa luas "pandangan" satu neuron</h4>
+  <p>Satu piksel output dari kernel 3×3 melihat area 3×3 di input. Kalau ditumpuk satu conv 3×3 lagi (stride 1), tiap neuron di layer kedua melihat 3×3 neuron layer pertama, yang masing-masing melihat 3×3 input, jadi gabungannya 5×5. Tiga layer: 7×7. Untuk stride 1: <code>RF = 1 + n × (F − 1)</code> dengan n = jumlah layer conv.</p>
+  <p>Inilah alasan VGG cuma pakai conv 3×3 (S04 slide 17, VGG hanya conv 3×3 dan pooling 2×2): tiga conv 3×3 melihat area sama dengan satu conv 7×7, tapi dengan parameter lebih sedikit. Dengan C = 64 channel (tanpa bias): tiga layer 3×3 = 3 × (3 × 3 × 64 × 64) = 110.592 parameter, satu layer 7×7 = 7 × 7 × 64 × 64 = 200.704 parameter. Plus ada ReLU tambahan di antaranya, jadi lebih ekspresif.</p>
+  <div class="widget" id="w-rf">
+    <h4>Widget: receptive field dan hemat parameter</h4>
+    <p class="hint"><span class="tag">tambahan</span> Tumpuk n layer conv ukuran F (stride 1). Receptive field = 1 + n·(F − 1). Perbandingan parameter memakai C channel di input dan output, tanpa bias.</p>
+    <div class="controls">
+      <label>Jumlah layer conv (n) <output id="rf-n-o">3</output>
+        <input type="range" id="rf-n" min="1" max="8" step="1" value="3">
+      </label>
+      <label>Ukuran kernel (F)
+        <select id="rf-f">
+          <option value="3" selected>3 × 3</option>
+          <option value="5">5 × 5</option>
+          <option value="7">7 × 7</option>
+        </select>
+      </label>
+      <label>Channel (C) <input type="number" id="rf-c" min="1" max="4096" step="1" value="64"></label>
+    </div>
+    <div class="readout" id="rf-out" aria-live="polite"></div>
+  </div>
+  <h4>5. Kenapa pooling tidak punya parameter</h4>
+  <p>Pooling cuma mengambil nilai maksimum (atau rata-rata) dalam jendela. Tidak ada bobot yang dikali, jadi tidak ada yang dipelajari. Ukurannya dihitung dengan rumus yang sama dengan conv, channel tetap.</p>
+
+  <h3>Contoh hitung (dari catatan kisi-kisi)</h3>
+  <div class="worked">
+    <p>Input 32×32×3, 10 filter 5×5, stride 1, padding 0.</p>
+    <ol>
+      <li>O = (32 − 5 + 2·0) / 1 + 1 = 28. Channel output = 10. Output = <strong>28 × 28 × 10</strong>.</li>
+      <li>Weights per filter = 5 × 5 × 3 = 75. Plus 1 bias = 76.</li>
+      <li>Total = 76 × 10 = <strong>760 parameter</strong>.</li>
+    </ol>
+    <p>Contoh gambar slide 10: input 7×7, padding 1 jadi 9×9, kernel 3×3, stride 2. Output = (9 − 3) / 2 + 1 = 4, jadi 4×4. Lanjut max pooling 2×2 jadi 2×2. (pooling 2×2 dengan stride 2 dibaca dari gambar)</p>
+  </div>
+
+  <h3>Contoh hitung berlapis: gaya LeNet <span class="tag">tambahan</span></h3>
+  <p>Susunan LeNet-5 dari S04 slide 16 (Conv → Pool → Conv → Pool → FC → Output, input 32×32, 10 kelas). Angka filter dan kernel di bawah adalah pilihan contoh sendiri (sama dengan preset kalkulator), bukan dari slide.</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Layer</th><th>Hitungan</th><th>Output</th><th>Parameter</th></tr></thead>
+      <tbody>
+        <tr><td>Input</td><td>-</td><td>32 × 32 × 1</td><td>0</td></tr>
+        <tr><td>Conv 5×5, K = 6, S = 1, P = 0</td><td>(32 − 5)/1 + 1 = 28. Param = (5·5·1 + 1)·6 = 156</td><td>28 × 28 × 6</td><td>156</td></tr>
+        <tr><td>Max pool 2×2, S = 2</td><td>(28 − 2)/2 + 1 = 14</td><td>14 × 14 × 6</td><td>0</td></tr>
+        <tr><td>Conv 5×5, K = 16, S = 1, P = 0</td><td>(14 − 5)/1 + 1 = 10. Param = (5·5·6 + 1)·16 = 151·16 = 2416</td><td>10 × 10 × 16</td><td>2416</td></tr>
+        <tr><td>Max pool 2×2, S = 2</td><td>(10 − 2)/2 + 1 = 5</td><td>5 × 5 × 16</td><td>0</td></tr>
+        <tr><td>Flatten</td><td>5 · 5 · 16 = 400</td><td>400</td><td>0</td></tr>
+        <tr><td>FC 400 → 10</td><td>400·10 + 10 = 4010</td><td>10</td><td>4010</td></tr>
+        <tr><th>Total</th><td></td><td></td><th>156 + 2416 + 4010 = 6582</th></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Perhatikan: layer FC memegang 4010 dari 6582 parameter (sekitar 61%). Makanya flatten dan FC itu bagian yang paling "mahal" di arsitektur klasik. <span class="tag">tambahan</span></p>
+
+  <h3>Contoh non-persegi <span class="tag">tambahan</span></h3>
+  <div class="worked">
+    <p>Input 28 (tinggi) × 40 (lebar) × 1, conv 3×3, K = 4, S = 1, P = 0.</p>
+    <ul>
+      <li>O_w = (40 − 3 + 0)/1 + 1 = 38. O_h = (28 − 3 + 0)/1 + 1 = 26. Output = <strong>26 × 38 × 4</strong>.</li>
+      <li>Parameter = (3·3·1 + 1)·4 = 40.</li>
+    </ul>
+    <p>Kalau kamu pakai satu angka untuk keduanya, hasilnya salah. Hitung lebar dan tinggi terpisah.</p>
+  </div>
+
+  <div class="widget" id="w-cnn">
+    <h4>Widget: kalkulator layer CNN, langkah demi langkah</h4>
+    <p class="hint">Isi ukuran input, atur layer, lihat langkah hitungnya. Klik "Tambah layer" untuk menumpuk layer berikutnya, output layer sebelumnya jadi input layer baru.</p>
+    <div class="row">
+      <button type="button" class="ghost" data-preset="kisi">Preset: soal kisi-kisi</button>
+      <button type="button" class="ghost" data-preset="slide">Preset: contoh gambar slide</button>
+      <button type="button" class="ghost" data-preset="lenet">Preset: gaya LeNet <span class="tag">tambahan</span></button>
+    </div>
+    <h4>Input</h4>
+    <div class="controls">
+      <label>Tinggi (H) <input type="number" id="cnn-h" min="1" step="1" value="32"></label>
+      <label>Lebar (W) <input type="number" id="cnn-w" min="1" step="1" value="32"></label>
+      <label>Channel (C) <input type="number" id="cnn-c" min="1" step="1" value="3"></label>
+    </div>
+    <h4>Layer berikutnya</h4>
+    <div class="controls">
+      <label>Tipe
+        <select id="cnn-type">
+          <option value="conv">Convolution</option>
+          <option value="pool">Pooling</option>
+          <option value="flatten">Flatten</option>
+          <option value="fc">Fully connected</option>
+        </select>
+      </label>
+      <label data-for="conv">Jumlah filter (K) <input type="number" id="cnn-k" min="1" step="1" value="10"></label>
+      <label data-for="conv pool">Kernel tinggi (F_h) <input type="number" id="cnn-fh" min="1" step="1" value="5"></label>
+      <label data-for="conv pool">Kernel lebar (F_w) <input type="number" id="cnn-fw" min="1" step="1" value="5"></label>
+      <label data-for="conv pool">Stride (S) <input type="number" id="cnn-s" min="1" step="1" value="1"></label>
+      <label data-for="conv pool">Padding (P) <input type="number" id="cnn-p" min="0" step="1" value="0"></label>
+      <label data-for="pool">Jenis pooling
+        <select id="cnn-ptype"><option value="max">Max</option><option value="avg">Average</option></select>
+      </label>
+      <label data-for="fc">Neuron output <input type="number" id="cnn-units" min="1" step="1" value="10"></label>
+    </div>
+    <div class="row">
+      <button type="button" id="cnn-add">Tambah layer</button>
+      <button type="button" class="ghost" id="cnn-undo">Hapus layer terakhir</button>
+      <button type="button" class="ghost" id="cnn-reset">Kosongkan stack</button>
+    </div>
+    <div class="readout err" id="cnn-err" aria-live="polite" hidden></div>
+    <h4>Langkah hitung layer ini (pratinjau)</h4>
+    <ol class="steps" id="cnn-steps"></ol>
+    <h4>Stack layer</h4>
+    <div class="table-wrap"><table id="cnn-table"></table></div>
+    <p class="hint">Pooling stride kosong di soal biasanya sama dengan ukuran window. Di sini isi stride sendiri.</p>
+  </div>
+
+  <h3>Jebakan ujian</h3>
+  <div class="trap">
+    <ul>
+      <li>Lupa bias → hasil kurang K. Contoh: 5×5×3 itu 75 per filter, tapi yang benar 76.</li>
+      <li>Channel output = <em>jumlah filter K</em>, bukan C_in.</li>
+      <li>Parameter conv tidak bergantung ukuran gambar input.</li>
+      <li>Pooling: ukuran dihitung pakai rumus yang sama, tapi channel tetap dan parameter 0. Kalau soal tidak menyebut stride pooling, biasanya sama dengan ukuran window.</li>
+      <li>Input non-persegi → hitung lebar dan tinggi terpisah.</li>
+      <li>Hasil bagi tidak bulat → bulatkan ke bawah (floor), baru + 1. <span class="tag">tambahan</span></li>
+      <li>Flatten dilakukan setelah semua conv dan pool, sebelum FC. FC butuh input satu dimensi.</li>
+    </ul>
+  </div>
+
+  <h3>Kapan pakai apa <span class="tag">tambahan</span></h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Pilihan</th><th>Efek</th></tr></thead>
+      <tbody>
+        <tr><td>Padding same (P = (F − 1)/2, S = 1)</td><td>Ukuran spatial tetap, tepi gambar tidak "dimakan" tiap layer</td></tr>
+        <tr><td>Padding 0 (valid)</td><td>Ukuran mengecil F − 1 tiap layer</td></tr>
+        <tr><td>Stride &gt; 1 atau pooling</td><td>Kecilkan dimensi, hemat komputasi. Pooling tanpa parameter, stride besar mengurangi detail</td></tr>
+        <tr><td>Kernel 3×3 bertumpuk</td><td>Receptive field luas dengan parameter lebih sedikit (alasan VGG)</td></tr>
+        <tr><td>Max pooling</td><td>Ambil respons terkuat, bantu translation invariance (S04 slide 13)</td></tr>
+        <tr><td>Average pooling</td><td>Ambil rata-rata, lebih halus</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Latar: Transfer Learning (S05)</h3>
+  <p>Cuma buat konteks topik 3. Ide: pakai model yang sudah dilatih di dataset besar (misal ImageNet), lalu pakai fiturnya untuk dataset baru yang lebih kecil. Cocok kalau data terbatas, tugasnya mirip gambar ImageNet, atau training dari nol terlalu mahal. (S05 slide 14, 15)</p>
+  <div class="widget" id="w-tl">
+    <h4>Dua pendekatan</h4>
+    <div class="row">
+      <button type="button" id="tl-fe">Feature extraction</button>
+      <button type="button" class="ghost" id="tl-ft">Fine-tuning</button>
+    </div>
+    <div class="stack-row" id="tl-row"></div>
+    <p id="tl-text"></p>
+    <p class="hint">Diagram blok-nya skema sederhana <span class="tag">tambahan</span>. Poin utama dari S05 slide 16 dan 28 sampai 29: mulai dari feature extraction, fine-tuning pakai LR kecil, waspada catastrophic forgetting kalau fine-tune terlalu cepat.</p>
+  </div>
+
+  <h3>Latihan</h3>
+  <div class="quiz" data-quiz="s3"></div>
+
+  <h3>Soal gaya kisi-kisi</h3>
+  <details>
+    <summary>Input 32×32 RGB ke satu conv layer: 10 filter 5×5, S = 1, P = 0. Hitung output dan parameter.</summary>
+    <div>
+      <p>Output spatial: (32 − 5 + 0) / 1 + 1 = 28, jadi 28 × 28 × 10.</p>
+      <p>Parameter: (5 × 5 × 3 + 1) × 10 = 76 × 10 = 760.</p>
+    </div>
+  </details>
+  <details>
+    <summary>Setelah conv tadi, ditambah max pooling 2×2 stride 2, lalu flatten dan FC 10 neuron. Berapa total parameter ketiganya?</summary>
+    <div>
+      <p>Pooling: (28 − 2)/2 + 1 = 14, output 14 × 14 × 10, parameter 0. Flatten: 14 · 14 · 10 = 1960. FC: 1960 · 10 + 10 = 19.610. Total ketiga layer = 0 + 0 + 19.610 = 19.610, dan dengan conv = 760 + 19.610 = 20.370. (tambahan, bukan soal asli)</p>
+    </div>
+  </details>
+
+  <h3>Checklist</h3>
+  <p class="cl-count" data-clcount="s3"></p>
+  <ul class="checklist" data-checklist="s3"></ul>
+
+  <p class="next-link">Lanjut: <a href="#s4">Topik 4, training GAN</a>. Dari model yang mengenali gambar ke model yang membuat gambar.</p>
+</section>
+
+<!-- ============ TOPIK 4 ============ -->
+<section class="topic" id="s4" data-title="4. GAN">
+  <h2><span class="num">4</span>Proses training GAN dan training terbaik</h2>
+  <p class="src">Sumber: S07 slide 9 sampai 13, 15 sampai 18, 26. Training loop (slide 11) dibaca dari gambar kode. Notion bagian "Proses Training GAN yang baik" dipakai untuk equilibrium, urutan update, tabel masalah, evaluasi, dan kerangka essay.</p>
+
+  <p class="lead">Jadi intinya: GAN itu dua model yang saling ngelawan. Generator bikin fake, discriminator nebak real atau fake. Training-nya gampang goyang, jadi tahu urutan update dan tips stabilisasi penting banget buat UTS.</p>
+
+  <h3>Intuisi: dua pemain</h3>
+  <ul>
+    <li><strong>Generator (G):</strong> bikin sampel palsu dari noise z. <strong>Discriminator (D):</strong> bedain real vs fake. Keduanya belajar dari satu sama lain secara adversarial. GAN diperkenalkan Ian Goodfellow (2014). (S07 slide 9)</li>
+    <li>Analogi <span class="tag">tambahan</span>: G itu pemalsu uang, D itu polisi. Polisi makin jago, pemalsu dipaksa bikin uang makin mirip asli. Pemalsu makin jago, polisi dipaksa makin teliti.</li>
+    <li>Ini <strong>permainan dua pemain</strong>. Target training yang baik bukan salah satu pemain menang, tapi <strong>equilibrium</strong>: kedua loss berada pada nilai yang seimbang. (Notion)</li>
+  </ul>
+
+  <h3>Rumus loss dan artinya</h3>
+  <div class="table-wrap">
+    <table>
+      <tbody>
+        <tr><th>Loss D</th><td><code>L_D = −E[log D(x)] − E[log(1 − D(G(z)))]</code></td></tr>
+        <tr><th>Loss G</th><td><code>L_G = −E[log D(G(z))]</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>(S07 slide 10.) Arti simbol: <code>x</code> data real. <code>z</code> noise acak. <code>G(z)</code> sampel fake. <code>D(·)</code> peluang (0 sampai 1) bahwa input itu real. <code>E[·]</code> rata-rata atas batch.</p>
+  <ul>
+    <li>D mau <code>D(x)</code> tinggi (real dikenali) dan <code>D(G(z))</code> rendah (fake dikenali). Makanya suku pertama menghukum D(x) kecil, suku kedua menghukum D(G(z)) besar.</li>
+    <li>G mau <code>D(G(z))</code> tinggi, alias D ketipu.</li>
+    <li><span class="tag">tambahan</span> Kenapa bentuknya begini: L_D adalah binary cross entropy dengan label real = 1 dan fake = 0. L_G adalah BCE yang sama tapi fake dikasih label <strong>1</strong>. Itu persis yang ditulis kode di slide 11 (lihat tabel training loop).</li>
+  </ul>
+
+  <div class="worked">
+    <p><strong>Contoh hitung</strong> <span class="tag">tambahan</span> (ln natural, angka sama dengan widget).</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Situasi</th><th>D(x)</th><th>D(G(z))</th><th>L_D = −ln D(x) − ln(1 − D(G(z)))</th><th>L_G = −ln D(G(z))</th></tr></thead>
+        <tbody>
+          <tr><td>Default widget</td><td>0,9</td><td>0,3</td><td>0,1054 + 0,3567 = 0,4620</td><td>1,2040</td></tr>
+          <tr><td>D terlalu kuat</td><td>0,99</td><td>0,01</td><td>0,0101 + 0,0101 = 0,0201</td><td>4,6052</td></tr>
+          <tr><td>G mendominasi</td><td>0,6</td><td>0,9</td><td>0,5108 + 2,3026 = 2,8134</td><td>0,1054</td></tr>
+          <tr><td>Seimbang</td><td>0,5</td><td>0,5</td><td>0,6931 + 0,6931 = 1,3863</td><td>0,6931</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>Baris 2: D kecil, G besar. Baris 3: D besar, G kecil. Baris 4: titik seimbang. Di sini D menebak 0,5 (tidak bisa bedain), L_D = 2 ln 2 = 1,3863 dan L_G = ln 2 = 0,6931. (nilai equilibrium teoretis: <span class="tag">tambahan</span>)</p>
+  </div>
+
+  <div class="widget" id="w-gan">
+    <h4>Widget: tarik tambang loss G vs D</h4>
+    <p class="hint">Geser output D. Log pakai natural log <span class="tag">tambahan</span> (slide tidak menyebut basis).</p>
+    <div class="controls">
+      <label>D(x): peluang D bilang real untuk data real <output id="gan-dx-o">0.90</output>
+        <input type="range" id="gan-dx" min="0.01" max="0.99" step="0.01" value="0.9">
+      </label>
+      <label>D(G(z)): peluang D bilang real untuk fake <output id="gan-dg-o">0.30</output>
+        <input type="range" id="gan-dg" min="0.01" max="0.99" step="0.01" value="0.3">
+      </label>
+    </div>
+    <div class="grid2">
+      <svg class="plot" id="gan-plot" viewBox="0 0 400 240" role="img" aria-label="Kurva loss G dan suku fake loss D terhadap D(G(z))"></svg>
+      <div>
+        <div class="meter"><div>L_D bagian real: −ln D(x) = <span id="gan-m1"></span></div><div class="track"><div class="fill dark" id="gan-b1"></div></div></div>
+        <div class="meter"><div>L_D bagian fake: −ln(1 − D(G(z))) = <span id="gan-m2"></span></div><div class="track"><div class="fill dark" id="gan-b2"></div></div></div>
+        <div class="meter"><div>L_D total = <span id="gan-m3"></span></div><div class="track"><div class="fill dark" id="gan-b3"></div></div></div>
+        <div class="meter"><div>L_G: −ln D(G(z)) = <span id="gan-m4"></span></div><div class="track"><div class="fill" id="gan-b4"></div></div></div>
+      </div>
+    </div>
+    <div class="readout" id="gan-read" aria-live="polite"></div>
+  </div>
+
+  <h3>Membaca loss: tabel kondisi (Notion)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Kondisi loss</th><th>Arti</th><th>Masalah</th></tr></thead>
+      <tbody>
+        <tr><td>Loss D kecil, loss G tinggi</td><td>D terlalu kuat, bisa membedakan real dan fake dengan baik</td><td>G cuma dapat sinyal lemah, risiko vanishing gradient</td></tr>
+        <tr><td>Loss D tinggi, loss G kecil</td><td>G mendominasi dan sukses besar menipu D. D jadi "bodoh", sering salah menebak</td><td>Tanda bahaya (mode collapse atau kegagalan GAN). Kalau D terlalu lemah, G tidak belajar lagi dan bisa menghasilkan satu jenis gambar yang sama terus</td></tr>
+        <tr><td>Loss D dan loss G seimbang</td><td>Kedua pemain setara</td><td>Kondisi ideal</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="recheck">
+    <p><strong>Cek ulang.</strong> Teks sumber (Notion): loss D tinggi dan loss G kecil adalah "tanda bahaya (mode collapse atau kegagalan GAN)".</p>
+    <p><span class="tag">tambahan</span> Jawaban standar: kombinasi itu pasti berarti D sedang kalah (terlalu lemah). Itu bisa jalan bareng mode collapse, tapi loss G kecil saja bukan bukti mode collapse. Mode collapse dipastikan lewat variasi sampel dan metrik (visual inspection, FID, IS). Di jawaban ujian tulis "D terlalu lemah, risiko mode collapse", jangan "pasti mode collapse".</p>
+  </div>
+  <p>Catatan penting (Notion): <strong>loss saja tidak cukup</strong> untuk menilai kualitas GAN. Evaluasi tetap perlu visual inspection dan metrik FID dan IS.</p>
+
+  <h3>Training loop (S07 slide 11, dari gambar kode)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Langkah</th><th>Kode di slide</th><th>Artinya</th></tr></thead>
+      <tbody>
+        <tr><td>Train D</td><td><code>loss_D = loss_fn(D(real), 1) + loss_fn(D(fake.detach()), 0)</code>, lalu <code>loss_D.backward()</code></td><td>Real dikasih label 1, fake dikasih label 0.</td></tr>
+        <tr><td>Train G</td><td><code>loss_G = loss_fn(D(fake), 1)</code>, lalu <code>loss_G.backward()</code></td><td>Fake dikasih label 1, karena G mau D bilang "real".</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><code>fake.detach()</code> <span class="tag">tambahan</span>: memutus graph supaya gradient dari loss D tidak mengalir ke G saat langkah D. Itu penjelasan standar PyTorch, bukan dari teks slide.</p>
+
+  <h3>Urutan update dalam satu iterasi (Notion)</h3>
+  <ol>
+    <li>Ambil batch data <strong>real</strong> (label 1).</li>
+    <li>Buat <strong>noise</strong> acak z, masukkan ke G untuk menghasilkan <strong>fake</strong> (label 0 untuk D).</li>
+    <li><strong>Update D:</strong> hitung loss D dari real dan fake (fake di-<code>detach</code>), lalu update <em>hanya</em> bobot D.</li>
+    <li><strong>Update G:</strong> bekukan (freeze) bobot D, hitung loss G dari output D terhadap fake (label 1), lalu update <em>hanya</em> bobot G.</li>
+  </ol>
+  <p>Ringkasnya: real batch → noise → fake (detach) → update D saja → freeze D → update G saja. Klik tombol di widget untuk melihat siapa yang dilatih di tiap langkah.</p>
+  <div class="widget" id="w-gf">
+    <h4>Widget: urutan update GAN dalam satu iterasi</h4>
+    <p class="hint">Klik "Langkah berikutnya". Kotak berwarna "dilatih" = bobot yang di-update di langkah itu, kotak putus-putus "frozen" = tidak di-update.</p>
+    <div class="row">
+      <button type="button" class="ghost" id="gf-prev">Langkah sebelumnya</button>
+      <button type="button" id="gf-next">Langkah berikutnya</button>
+      <span id="gf-step" aria-live="polite"></span>
+    </div>
+    <div class="stack-row" id="gf-row"></div>
+    <p id="gf-text"></p>
+  </div>
+  <p><span class="tag">tambahan</span> Di PyTorch biasanya "freeze D" dilakukan dengan memakai dua optimizer terpisah: optimizer D hanya memegang parameter D, optimizer G hanya parameter G. Pada langkah G, gradient tetap mengalir <em>melalui</em> D ke G, tapi hanya <code>optimizer_G.step()</code> yang mengubah bobot.</p>
+
+  <h3>Kenapa G pakai label 1 (non-saturating loss) <span class="tag">tambahan</span></h3>
+  <p>Versi minimax asli meminta G meminimalkan <code>log(1 − D(G(z)))</code>. Masalahnya, di awal training D(G(z)) dekat 0 (D gampang mengenali fake), dan di sana gradien versi itu hampir nol. Bandingkan di level logit <code>a</code> dengan <code>D = σ(a)</code>:</p>
+  <ul>
+    <li>Versi minimax: turunan <code>log(1 − σ(a))</code> terhadap a = <code>−σ(a)</code>. Saat D(G(z)) = 0,01 besarnya cuma <strong>0,01</strong>.</li>
+    <li>Versi non-saturating <code>−log σ(a)</code>: turunannya <code>−(1 − σ(a))</code>. Saat D(G(z)) = 0,01 besarnya <strong>0,99</strong>.</li>
+  </ul>
+  <p>Jadi G tetap dapat sinyal kuat justru saat sedang kalah. Loss G di slide 10 (<code>−E[log D(G(z))]</code>) sudah bentuk non-saturating ini. Notion menyebutnya "non-saturating loss" untuk G.</p>
+
+  <h3>Masalah training: gejala, penyebab, solusi</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Masalah</th><th>Gejala</th><th>Penyebab</th><th>Solusi</th></tr></thead>
+      <tbody>
+        <tr><td>Mode collapse</td><td>G cuma hasilkan gambar yang kurang bervariasi</td><td>G menemukan beberapa "puncak" (modus) yang berhasil menipu D</td><td>Mini-batch discrimination (D diberi info keragaman batch), WGAN <span class="tag">Notion</span></td></tr>
+        <tr><td>Non-convergence</td><td>Loss berosilasi terus-menerus (S07: unstable loss curves)</td><td>Learning rate terlalu besar <span class="tag">Notion</span></td><td>Perkecil learning rate. Tips S07: batch norm, arsitektur DCGAN</td></tr>
+        <tr><td>Vanishing gradients</td><td>G tidak belajar karena D terlalu kuat (S07 slide 12)</td><td>D terlalu mudah membedakan real dan fake, G tidak dapat sinyal</td><td>Label smoothing, non-saturating loss, LeakyReLU, noise injection</td></tr>
+        <tr><td>Evaluation difficulty</td><td>Tidak ada ukuran likelihood yang jelas</td><td>GAN tidak memberi probabilitas data</td><td>Visual inspection, FID, IS</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Sumber: S07 slide 12 untuk empat masalah, Notion untuk gejala/penyebab/solusi. Mini-batch discrimination dan WGAN tidak ada di slide.</p>
+  <div class="recheck">
+    <p><strong>Cek ulang.</strong> Teks sumber (Notion): solusi mode collapse "WGAN: membantu hasil lebih bervariasi".</p>
+    <p><span class="tag">tambahan</span> Jawaban standar: WGAN dibuat terutama untuk <em>stabilitas</em> training dengan mengganti loss memakai jarak Wasserstein (gradien tidak mati walau D kuat). Berkurangnya mode collapse adalah efek sampingnya. Aman ditulis "WGAN: training lebih stabil dan membantu variasi".</p>
+  </div>
+
+  <div class="widget" id="w-mode">
+    <h4>Widget: mode collapse</h4>
+    <p class="hint">Data real punya 4 kelompok (mode). Geser berapa mode yang dihasilkan G. Titik abu = real, lingkaran = fake dari G. Data ilustrasi <span class="tag">tambahan</span>.</p>
+    <div class="controls">
+      <label>Mode yang dicakup G <output id="mode-k-o">4</output>
+        <input type="range" id="mode-k" min="1" max="4" step="1" value="4">
+      </label>
+    </div>
+    <svg class="plot" id="mode-plot" viewBox="0 0 320 320" style="max-width:26rem" role="img" aria-label="Sebaran data real dan hasil generator"></svg>
+    <div class="readout" id="mode-read" aria-live="polite"></div>
+  </div>
+
+  <h3>Tips training GAN (S07 slide 13) dan kenapa tiap tips bekerja</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tips (slide)</th><th>Kenapa membantu <span class="tag">tambahan</span></th></tr></thead>
+      <tbody>
+        <tr><td>LeakyReLU, bukan ReLU</td><td>Gradient tetap hidup untuk input negatif, mencegah dying ReLU di D dan G</td></tr>
+        <tr><td>Batch normalization</td><td>Menjaga distribusi aktivasi stabil, loss lebih tenang</td></tr>
+        <tr><td>Hindari sigmoid di layer terakhir D, pakai BCEWithLogits</td><td>BCEWithLogits menggabungkan sigmoid dan log di satu operasi yang stabil secara numerik, jadi tidak ada log(0)</td></tr>
+        <tr><td>Label smoothing atau noise injection</td><td>Label smoothing (misal real = 0,9, bukan 1) membuat D tidak terlalu yakin. Noise injection mempersulit D menghafal. Keduanya memperlambat D yang terlalu kuat</td></tr>
+        <tr><td>Pantau IS atau FID</td><td>Loss saja tidak cukup untuk menilai kualitas, butuh metrik di level sampel</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Tambahan dari Notion untuk kerangka essay: learning rate kecil, arsitektur DCGAN, dan non-saturating loss untuk G.</p>
+
+  <h3>Evaluasi: kapan model dianggap baik?</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Metrik</th><th>Arah</th><th>Yang diukur</th></tr></thead>
+      <tbody>
+        <tr><td>FID (Fréchet Inception Distance)</td><td>Makin kecil makin baik</td><td>Jarak distribusi fitur antara gambar real dan generated (memakai Inception v3)</td></tr>
+        <tr><td>IS (Inception Score)</td><td>Makin tinggi makin baik</td><td>Realisme dan keragaman gambar yang dihasilkan</td></tr>
+        <tr><td>Visual inspection</td><td>Penilaian manusia</td><td>Pemeriksaan langsung apakah hasil realistis dan bervariasi</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Sumber: S07 slide 18, Notion. <span class="tag">tambahan</span> Rumus FID: <code>‖μ_r − μ_g‖² + Tr(Σ_r + Σ_g − 2(Σ_rΣ_g)^½)</code> dengan μ dan Σ adalah mean dan kovarians fitur Inception untuk gambar real (r) dan generated (g). Slide cuma bilang "jarak antara distribusi fitur".</p>
+
+  <h3>Gejala → diagnosis → tindakan (Notion)</h3>
+  <div class="widget" id="w-sym4">
+    <h4>Widget: gejala GAN → diagnosis → tindakan</h4>
+    <div class="controls">
+      <label>Gejala di soal
+        <select id="sym4-sel"></select>
+      </label>
+    </div>
+    <div class="readout" id="sym4-out" aria-live="polite"></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Gejala di soal</th><th>Diagnosis</th><th>Tindakan</th></tr></thead>
+      <tbody>
+        <tr><td>Hasil G mirip-mirip, kurang variasi</td><td>Mode collapse</td><td>Mini-batch discrimination, WGAN</td></tr>
+        <tr><td>Loss berosilasi terus, tidak konvergen</td><td>Non-convergence</td><td>Kecilkan learning rate</td></tr>
+        <tr><td>Loss D sangat kecil, G tidak belajar</td><td>Vanishing gradients (D terlalu kuat)</td><td>Label smoothing, non-saturating loss, LeakyReLU</td></tr>
+        <tr><td>Loss D dan G seimbang, hasil realistis</td><td>Kondisi ideal</td><td>Lanjut evaluasi dengan FID dan IS</td></tr>
+        <tr><td>Ingin mengontrol kelas output (misal "kucing" atau "anjing")</td><td>Perlu kondisi tambahan</td><td>Conditional GAN: label diberikan ke G dan D</td></tr>
+        <tr><td>Ingin mengontrol gaya atau variasi visual</td><td>Perlu kontrol gaya</td><td>StyleGAN</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Varian GAN dan konteks (S07)</h3>
+  <ul>
+    <li><strong>DCGAN:</strong> ganti FC dengan Conv/ConvTranspose, lebih stabil dan efisien (MNIST, CIFAR-10, CelebA). (slide 15)</li>
+    <li><strong>StyleGAN</strong> (NVIDIA): style-based, kontrol gaya tingkat tinggi dan variasi stokastik, wajah fotorealistis. Pakai kalau mau mengontrol gaya atau variasi visual. (slide 16, Notion)</li>
+    <li><strong>Conditional GAN:</strong> label jadi input G dan D, bisa generate kelas tertentu (contoh digit 3 atau gambar kucing). Pakai kalau mau mengontrol kelas output. (slide 17, Notion)</li>
+    <li><strong>GAN vs VAE vs Diffusion</strong> (slide 26): GAN kualitas tinggi, stabilitas rendah, sampling cepat. VAE kualitas medium, stabil, cepat. Diffusion kualitas sangat tinggi, stabil, sampling lambat.</li>
+  </ul>
+
+  <h3>Kapan pakai apa</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Kebutuhan</th><th>Pilihan</th></tr></thead>
+      <tbody>
+        <tr><td>Generate gambar dengan sampling cepat, kualitas tinggi</td><td>GAN (siap menangani training yang rewel)</td></tr>
+        <tr><td>Training stabil, latent space halus, kualitas medium cukup</td><td>VAE</td></tr>
+        <tr><td>Kualitas paling tinggi, sampling lambat boleh</td><td>Diffusion</td></tr>
+        <tr><td>Generate kelas tertentu</td><td>Conditional GAN</td></tr>
+        <tr><td>Gaya dan variasi visual terkontrol</td><td>StyleGAN</td></tr>
+        <tr><td>Data gambar, mau lebih stabil</td><td>DCGAN</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Jebakan ujian</h3>
+  <div class="trap">
+    <ul>
+      <li>Label saat latih D: real 1, fake 0. Saat latih G: fake dikasih label <strong>1</strong>. Sering kebalik.</li>
+      <li>Hindari sigmoid di layer terakhir D, pakai BCEWithLogits. Jawaban "pakai sigmoid" salah.</li>
+      <li>Loss G kecil belum tentu GAN bagus (bisa D yang lemah). Loss saja tidak cukup, butuh FID, IS, visual inspection.</li>
+      <li>FID makin <em>kecil</em> makin baik. IS makin <em>tinggi</em> makin baik. Jangan kebalik.</li>
+      <li>Vanishing gradients terjadi saat D terlalu <em>kuat</em>, bukan terlalu lemah.</li>
+      <li>Saat update D, fake di-detach. Saat update G, D tidak ikut diupdate.</li>
+    </ul>
+  </div>
+
+  <h3>Contoh jawaban essay (kerangka Notion)</h3>
+  <p><strong>Soal:</strong> "Jelaskan bagaimana mendapatkan proses training GAN yang paling baik (appropriate)."</p>
+  <ol>
+    <li><strong>Tujuan:</strong> equilibrium, yaitu loss D dan G seimbang.</li>
+    <li><strong>Alur training:</strong> update D dulu dengan data real dan fake (fake di-detach), lalu update G dengan bobot D di-freeze.</li>
+    <li><strong>Loss:</strong> BCEWithLogitsLoss untuk D, dan non-saturating loss untuk G.</li>
+    <li><strong>Stabilisasi:</strong> LeakyReLU, batch normalization, arsitektur DCGAN, learning rate kecil, label smoothing, noise injection.</li>
+    <li><strong>Atasi masalah:</strong> mode collapse (mini-batch discrimination atau WGAN), non-convergence (learning rate), vanishing gradients (label smoothing).</li>
+    <li><strong>Evaluasi:</strong> FID makin kecil, IS makin tinggi, dan visual inspection.</li>
+  </ol>
+
+  <h3>Latihan</h3>
+  <div class="quiz" data-quiz="s4"></div>
+
+  <h3>Soal gaya kisi-kisi</h3>
+  <details>
+    <summary>Jelaskan proses training GAN, tiga masalahnya, dan tips untuk training terbaik.</summary>
+    <div>
+      <ol>
+        <li>Tiap iterasi: update D dulu (real label 1, fake label 0, fake di-detach), lalu update G (fake dikasih label 1).</li>
+        <li>Masalah: mode collapse, non-convergence (loss tidak stabil), vanishing gradients saat D terlalu kuat, dan evaluasi sulit karena tidak ada likelihood.</li>
+        <li>Tips: LeakyReLU, batch normalization, hindari sigmoid di akhir D (pakai BCEWithLogits), label smoothing atau noise injection, pantau IS atau FID.</li>
+      </ol>
+    </div>
+  </details>
+  <details>
+    <summary>Loss D sangat kecil dan G tidak belajar. Apa diagnosisnya dan tindakannya?</summary>
+    <div>
+      <p>Diagnosis: vanishing gradients karena D terlalu kuat. G hanya dapat sinyal lemah. Tindakan: label smoothing, non-saturating loss untuk G, LeakyReLU, atau noise injection supaya D tidak terlalu cepat menang.</p>
+    </div>
+  </details>
+  <details>
+    <summary>Kenapa evaluasi GAN sulit dan bagaimana mengatasinya?</summary>
+    <div>
+      <p>GAN tidak memberi probabilitas data, jadi tidak ada ukuran likelihood yang jelas. Dipakai visual inspection (apakah realistis dan bervariasi), FID (jarak distribusi fitur real vs generated, makin kecil makin baik), dan IS (realism dan diversity, makin tinggi makin baik).</p>
+    </div>
+  </details>
+
+  <h3>Checklist</h3>
+  <p class="cl-count" data-clcount="s4"></p>
+  <ul class="checklist" data-checklist="s4"></ul>
+
+  <p class="next-link">Lanjut: <a href="#s5">Topik 5, MLP untuk regresi dan klasifikasi</a>. Balik ke dasar: bagaimana MLP dipasang untuk tugas prediksi biasa.</p>
+</section>
+
+<!-- ============ TOPIK 5 ============ -->
+<section class="topic" id="s5" data-title="5. MLP kasus">
+  <h2><span class="num">5</span>Studi kasus MLP regresi dan klasifikasi</h2>
+  <p class="src">Sumber: S03 (semua slide), S01 slide 11, 12, 25, S02 slide 20 sampai 29, catatan MSE/MAE/BCE, Notion bagian "[CASE] MLP".</p>
+
+  <p class="lead">Jadi intinya: MLP-nya sama, yang beda cuma output layer, loss, dan metrik. Salah pilih salah satunya, hasilnya ikut salah.</p>
+
+  <h3>Apa itu MLP</h3>
+  <p><strong>Intuisi.</strong> MLP (Multi-Layer Perceptron) itu tumpukan "linear lalu non-linear". Tiap neuron menimbang semua input, lalu activation memutuskan seberapa kuat dia "menyala". Hidden layer belajar kombinasi fitur, output layer menerjemahkan jadi jawaban sesuai tugas. (Notion, S03 slide 22 sampai 23)</p>
+  <p><strong>Mekanisme dan rumus:</strong> <code>z = Wx + b</code>, lalu <code>a = σ(z)</code> (S01 slide 11, Notion). MLP adalah jaringan feedforward dengan input layer, satu atau lebih hidden layer, dan output layer, di mana tiap neuron terhubung penuh ke neuron layer berikutnya (fully connected). (Notion)</p>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Komponen</th><th>Fungsi</th></tr></thead>
+      <tbody>
+        <tr><td>Input layer</td><td>Menerima fitur</td></tr>
+        <tr><td>Hidden layer(s)</td><td>Mempelajari kombinasi fitur, lewat activation non-linear</td></tr>
+        <tr><td>Output layer</td><td>Menghasilkan prediksi sesuai tugas</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="worked">
+    <p><strong>Contoh hitung forward pass</strong> <span class="tag">tambahan</span> (angka buatan sendiri). Jaringan 2 → 2 → 1, hidden pakai ReLU.</p>
+    <ul>
+      <li>Input <code>x = (2, 1)</code>. Bobot hidden <code>W₁ = [[1, −1], [0,5, 2]]</code>, bias <code>b₁ = (0, −1)</code>.</li>
+      <li><code>z₁ = W₁x + b₁ = (1·2 + (−1)·1 + 0, 0,5·2 + 2·1 − 1) = (1, 2)</code>. ReLU: <code>a₁ = (1, 2)</code>.</li>
+      <li>Output <code>w₂ = (1, −0,5)</code>, <code>b₂ = 0,3</code>: <code>z₂ = 1·1 + (−0,5)·2 + 0,3 = 0,3</code>.</li>
+      <li>Regresi: ŷ = 0,3 (tanpa activation). Klasifikasi biner: ŷ = σ(0,3) = 1 / (1 + e^(−0,3)) = <strong>0,5744</strong>, dengan threshold 0,5 diprediksi kelas 1.</li>
+      <li>Jumlah parameter: (2·2 + 2) + (2·1 + 1) = 6 + 3 = <strong>9</strong>.</li>
+    </ul>
+  </div>
+
+  <h3>Kegunaan MLP dan kapan pakai</h3>
+  <ul>
+    <li><strong>Data tabular</strong> (baris dan kolom fitur). Ini kandang MLP. (S04 slide 33: MLP use case = tabular)</li>
+    <li><strong>Klasifikasi</strong> (biner atau multiklas) dan <strong>regresi</strong> (nilai kontinu).</li>
+    <li><strong>Pendekatan fungsi non-linear:</strong> menurut Universal Approximation Theorem, MLP dengan satu hidden layer bisa mengaproksimasi fungsi kontinu apa pun. (S01 slide 12, Notion)</li>
+    <li><strong>Dataset sederhana</strong> seperti MNIST: angka tulisan tangan 28×28 piksel, 10 kelas, MLP mencapai akurasi sekitar 97%. (S01 slide 25, Notion)</li>
+  </ul>
+  <div class="worked">
+    <p><strong>MNIST dengan MLP</strong> <span class="tag">tambahan</span> (hitungan, arsitektur 784 → 128 → 10 hanya contoh): input 28 × 28 = 784. Layer 1: 784·128 + 128 = 100.480. Layer 2: 128·10 + 10 = 1.290. Total <strong>101.770</strong> parameter. Masih kecil, makanya MNIST gampang.</p>
+  </div>
+
+  <h3>Keterbatasan MLP untuk gambar → solusinya CNN</h3>
+  <ul>
+    <li>MLP <strong>tidak memahami struktur spasial</strong>. Setiap piksel diperlakukan sebagai fitur terpisah. (Notion, S04 slide 6)</li>
+    <li>Akibatnya <strong>parameter membengkak</strong> dan rentan overfit.</li>
+    <li>Solusinya CNN: kernel berbagi bobot dan menjaga hubungan spasial. (S04 slide 7, 33)</li>
+  </ul>
+  <div class="worked">
+    <p><strong>Seberapa bengkak</strong> <span class="tag">tambahan</span>: gambar 224 × 224 × 3 = 150.528 piksel. Satu layer MLP ke 1000 neuron: 150.528 · 1000 + 1000 = <strong>150.529.000</strong> parameter, baru satu layer. Bandingkan satu layer conv 3×3 dengan 64 filter di gambar yang sama: (3·3·3 + 1) · 64 = <strong>1.792</strong> parameter. Lihat <a href="#s3">topik 3</a> untuk hitungannya.</p>
+  </div>
+  <div class="recheck">
+    <p><strong>Cek ulang (dua hal).</strong> Teks sumber (S03 slide 12): judul slide tertulis "MLP for Binary Classification", padahal isinya <code>nn.Linear(hidden_dim, num_classes)</code>, Softmax, dan CrossEntropyLoss. Itu isi untuk multiclass, kemungkinan salah judul (slide 11 yang binary).</p>
+    <p>Teks sumber (Notion): judul bagian "studi kasus model MLP for classification and binary regression".</p>
+    <p><span class="tag">tambahan</span> Jawaban standar: yang benar "regression and binary classification" (atau classification dan regression). Tidak ada istilah standar "binary regression". Pegang isi slide 10 sampai 12: regresi → 1 neuron tanpa activation, biner → 1 neuron + sigmoid, multiclass → C neuron + softmax.</p>
+  </div>
+
+  <h3>Regresi vs klasifikasi (S03 slide 6 sampai 8)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Aspek</th><th>Regresi</th><th>Klasifikasi</th></tr></thead>
+      <tbody>
+        <tr><td>Output</td><td>Kontinu (float)</td><td>Diskrit (kategori)</td></tr>
+        <tr><td>Contoh</td><td>Harga rumah, suhu, harga saham</td><td>Spam vs bukan, kucing/anjing/kuda, sentimen</td></tr>
+        <tr><td>Loss</td><td>MSE, MAE</td><td>Cross Entropy</td></tr>
+        <tr><td>Output activation</td><td>None atau ReLU</td><td>Softmax / Sigmoid</td></tr>
+        <tr><td>Metrik</td><td>MSE, MAE, R²</td><td>Accuracy, F1, AUC</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Pilih output head: panduan lengkap</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tugas</th><th>Output layer</th><th>Activation akhir</th><th>Loss yang cocok</th><th>Metrik</th></tr></thead>
+      <tbody>
+        <tr><td>Regresi</td><td><code>Linear(hidden, 1)</code></td><td>Linear / tanpa activation (ReLU kalau nilai tidak boleh negatif)</td><td>MSELoss atau L1Loss (MAE)</td><td>MSE, MAE, R²</td></tr>
+        <tr><td>Klasifikasi biner</td><td><code>Linear(hidden, 1)</code></td><td>Sigmoid</td><td>BCELoss, atau BCEWithLogitsLoss (lebih disarankan)</td><td>Accuracy, Precision, Recall, F1, AUC</td></tr>
+        <tr><td>Klasifikasi multiclass</td><td><code>Linear(hidden, C)</code></td><td>Softmax (implisit di dalam loss)</td><td>CrossEntropyLoss (log-softmax + NLL)</td><td>Accuracy, F1, AUC</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Sumber: S03 slide 10 sampai 12, Notion tabel range activation (Linear untuk regresi, Sigmoid untuk biner, Softmax untuk multiklas).</p>
+  <div class="widget" id="w-head">
+    <h4>Widget: pilih output head yang cocok</h4>
+    <div class="controls">
+      <label>Tugas
+        <select id="head-task">
+          <option value="reg">Regresi (misal harga rumah)</option>
+          <option value="bin">Klasifikasi biner (misal spam)</option>
+          <option value="multi">Klasifikasi multiclass (misal kucing/anjing/kuda)</option>
+        </select>
+      </label>
+      <label id="head-c-wrap">Jumlah kelas (C) <input type="number" id="head-c" min="3" max="1000" step="1" value="3"></label>
+    </div>
+    <div class="table-wrap"><table id="head-table"></table></div>
+    <div class="readout" id="head-note"></div>
+  </div>
+
+  <h3>Loss function: rumus, arti, dan hitungan</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Loss</th><th>Rumus</th><th>Untuk</th><th>Catatan</th></tr></thead>
+      <tbody>
+        <tr><td>MSE</td><td><code>(1/n) Σ (y − ŷ)²</code></td><td>Regresi</td><td>Hukum error besar lebih berat, sensitif outlier</td></tr>
+        <tr><td>MAE</td><td><code>(1/n) Σ |y − ŷ|</code></td><td>Regresi</td><td>Lebih tahan outlier, gradien konstan</td></tr>
+        <tr><td>BCE</td><td><code>−(y log ŷ + (1 − y) log(1 − ŷ))</code></td><td>Biner</td><td>Pasangan sigmoid, threshold untuk tentukan kelas</td></tr>
+        <tr><td>Cross Entropy</td><td><code>−Σ yᵢ log ŷᵢ</code></td><td>Multiclass</td><td>Di PyTorch sudah termasuk log-softmax + NLL</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>(S03 slide 16 sampai 19, catatan.) Praktik PyTorch (S03 slide 10 sampai 12): regresi pakai <code>nn.Linear(hidden, 1)</code> tanpa activation dan <code>MSELoss</code> atau <code>L1Loss</code>. Biner pakai <code>nn.Linear(hidden, 1)</code> + Sigmoid dengan <code>BCELoss</code>, tapi <code>BCEWithLogitsLoss</code> lebih disarankan. Multiclass pakai <code>nn.Linear(hidden, num_classes)</code> dan <code>CrossEntropyLoss</code> (softmax sudah di dalam loss, jadi jangan tambah Softmax lagi).</p>
+  <div class="worked">
+    <p><strong>Contoh hitung</strong> <span class="tag">tambahan</span> (ln natural).</p>
+    <ul>
+      <li><strong>BCE, y = 1:</strong> ŷ = 0,8 → −ln 0,8 = <strong>0,2231</strong> (yakin dan benar, loss kecil). ŷ = 0,1 → −ln 0,1 = <strong>2,3026</strong> (yakin tapi salah, loss besar). Suku (1 − y) bernilai 0 saat y = 1, jadi tinggal −ln ŷ.</li>
+      <li><strong>Cross entropy, 3 kelas:</strong> logit z = (2,0; 1,0; 0,1), kelas benar = kelas 1. exp = (7,389; 2,718; 1,105), jumlah 11,2125. Softmax p = (0,6590; 0,2424; 0,0986), jumlah 1. CE = −ln 0,6590 = <strong>0,4170</strong>. Cuma probabilitas kelas benar yang masuk karena y adalah one-hot. Coba di widget di bawah.</li>
+      <li><strong>MSE vs MAE:</strong> error 1, 1, 1, 10 → MSE = 25,75, MAE = 3,25. Outlier mendominasi MSE.</li>
+    </ul>
+  </div>
+  <div class="widget" id="w-ce">
+    <h4>Widget: softmax dan cross entropy (calculator mode)</h4>
+    <p class="hint">Isi tiga logit mentah dan kelas yang benar. ln = natural log <span class="tag">tambahan</span>.</p>
+    <div class="controls">
+      <label>Logit kelas 1 <input type="number" id="ce-z1" step="any" value="2.0"></label>
+      <label>Logit kelas 2 <input type="number" id="ce-z2" step="any" value="1.0"></label>
+      <label>Logit kelas 3 <input type="number" id="ce-z3" step="any" value="0.1"></label>
+      <label>Kelas benar
+        <select id="ce-true"><option value="0">Kelas 1</option><option value="1">Kelas 2</option><option value="2">Kelas 3</option></select>
+      </label>
+    </div>
+    <ol class="steps" id="ce-steps"></ol>
+  </div>
+
+  <h3>Decision boundary</h3>
+  <ul>
+    <li>Single-layer perceptron cuma bisa bikin garis lurus dan tidak bisa pisahin pola XOR. (S03 slide 21)</li>
+    <li>MLP numpuk layer, boundary jadi non-linear (kurva dan area kompleks). Kekuatannya dari depth dan activation. (S03 slide 22)</li>
+    <li>Layer awal ambil fitur sederhana, layer dalam menggabungkannya. (S03 slide 23)</li>
+    <li>Detail lengkap ada di <a href="#s1">topik 1</a>.</li>
+  </ul>
+
+  <h3>Masalah umum dan solusinya</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Masalah</th><th>Gejala</th><th>Solusi</th></tr></thead>
+      <tbody>
+        <tr><td>Underfitting</td><td>Error train dan validation sama-sama tinggi</td><td>Model lebih besar/dalam, training lebih lama, fitur lebih baik, kurangi regularisasi (λ terlalu besar bikin underfit). <span class="tag">tambahan</span></td></tr>
+        <tr><td>Overfitting</td><td>Train bagus, validation jelek (gap besar)</td><td>L2, dropout, augmentation, early stopping (S02, lihat <a href="#s2-reg">Regularization</a>)</td></tr>
+        <tr><td>Class imbalance</td><td>Model nebak kelas mayoritas terus, accuracy tinggi tapi menipu</td><td>Class weights atau sampling, pilih metrik hati-hati: F1, recall, precision (S03 slide 24)</td></tr>
+        <tr><td>Fitur beda skala</td><td>Training lambat atau tidak stabil <span class="tag">tambahan</span></td><td>Normalize/standardize fitur. Hitung statistiknya dari data train saja. <span class="tag">tambahan</span> (S04 dan S06 menyebut normalisasi input, S03 tidak)</td></tr>
+        <tr><td>Head atau loss salah</td><td>Loss tidak masuk akal</td><td>Cocokkan head, activation, dan loss (lihat widget di atas). Contoh: jangan Softmax dulu sebelum CrossEntropyLoss.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="widget" id="w-diag">
+    <h4>Widget: diagnosis dari error train dan validation</h4>
+    <p class="hint">Ambang di bawah cuma aturan jempol buat latihan <span class="tag">tambahan</span>: train error di atas 20% dianggap underfit, gap validation dikurangi train di atas 10 poin dianggap overfit.</p>
+    <div class="controls">
+      <label>Error train (%) <output id="diag-tr-o">5</output><input type="range" id="diag-tr" min="0" max="60" step="1" value="5"></label>
+      <label>Error validation (%) <output id="diag-va-o">25</output><input type="range" id="diag-va" min="0" max="60" step="1" value="25"></label>
+    </div>
+    <div class="readout" id="diag-out" aria-live="polite"></div>
+  </div>
+
+  <div class="widget" id="w-imb">
+    <h4>Widget: kenapa accuracy menipu saat class imbalance</h4>
+    <p class="hint">Dataset 1000 sampel. Model malas selalu nebak kelas mayoritas. Geser porsi kelas minoritas.</p>
+    <div class="controls">
+      <label>Porsi kelas minoritas (%) <output id="imb-p-o">5</output><input type="range" id="imb-p" min="1" max="50" step="1" value="5"></label>
+    </div>
+    <div class="grid2">
+      <div class="cm" id="imb-cm"></div>
+      <div class="readout" id="imb-out" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <div class="worked">
+    <p><strong>Contoh hitung imbalance</strong> (spam 2% dari 1000 email, model malas selalu bilang "bukan spam"): TP = 0, FN = 20, FP = 0, TN = 980. Accuracy = 980 / 1000 = <strong>0,98</strong>. Recall spam = 0 / 20 = <strong>0</strong>. Precision = 0 / 0 tidak terdefinisi. F1 = 0. Accuracy 98% tapi tidak satu pun spam tertangkap.</p>
+  </div>
+
+  <h3>Jebakan ujian</h3>
+  <div class="trap">
+    <ul>
+      <li>Multiclass di PyTorch: kirim <em>logit mentah</em> ke CrossEntropyLoss. Menambah Softmax sendiri = double softmax.</li>
+      <li>Sigmoid + BCELoss boleh, tapi BCEWithLogitsLoss lebih disarankan (lebih stabil numerik).</li>
+      <li>Regresi: output tanpa activation. Sigmoid di regresi membatasi hasil ke (0, 1).</li>
+      <li>MSE untuk klasifikasi? Salah pasangan. Klasifikasi pakai cross entropy.</li>
+      <li>Accuracy 90%+ di data imbalance belum berarti model bagus.</li>
+      <li>Train 99% vs validation 70% = overfitting. Train 60% dan validation 58% = underfitting.</li>
+    </ul>
+  </div>
+
+  <h3>Kapan pakai apa</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Situasi</th><th>Pilihan</th></tr></thead>
+      <tbody>
+        <tr><td>Prediksi angka (harga, suhu)</td><td>Regresi, head linear, MSE (atau MAE kalau banyak outlier)</td></tr>
+        <tr><td>Dua kelas (spam / bukan)</td><td>Biner, 1 neuron, BCEWithLogitsLoss, threshold</td></tr>
+        <tr><td>Banyak kelas satu label benar</td><td>Multiclass, C neuron, CrossEntropyLoss</td></tr>
+        <tr><td>Data tabular</td><td>MLP</td></tr>
+        <tr><td>Data gambar</td><td>CNN (<a href="#s3">topik 3</a>), bukan MLP</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Latihan</h3>
+  <div class="quiz" data-quiz="s5"></div>
+
+  <h3>Soal gaya kisi-kisi</h3>
+  <details>
+    <summary>Rancang MLP untuk prediksi harga rumah, dan MLP untuk deteksi spam dengan spam hanya 2% data.</summary>
+    <div>
+      <p><strong>Harga rumah (regresi):</strong> hidden layers + output <code>Linear(hidden, 1)</code> tanpa activation. Loss MSE (atau MAE kalau banyak outlier). Metrik MSE, MAE, R². Normalisasi fitur <span class="tag">tambahan</span>.</p>
+      <p><strong>Spam (klasifikasi biner, imbalance):</strong> output <code>Linear(hidden, 1)</code>, loss <code>BCEWithLogitsLoss</code>, threshold untuk kelas. Karena spam cuma 2%, accuracy menipu. Pakai class weights atau sampling, dan evaluasi dengan precision, recall, F1.</p>
+    </div>
+  </details>
+  <details>
+    <summary>Apa keterbatasan MLP untuk gambar dan apa solusinya?</summary>
+    <div>
+      <p>MLP tidak memahami struktur spasial karena tiap piksel diperlakukan sebagai fitur terpisah, sehingga parameter membengkak dan rentan overfit. Solusinya CNN, yang memakai spatial locality dan shared weights lewat kernel.</p>
+    </div>
+  </details>
+  <details>
+    <summary>Sebutkan kegunaan MLP dan satu contoh dataset sederhana.</summary>
+    <div>
+      <p>Data tabular, klasifikasi (biner/multiklas), regresi, dan pendekatan fungsi non-linear (Universal Approximation Theorem). Contoh dataset: MNIST (digit 28×28, akurasi sekitar 97%).</p>
+    </div>
+  </details>
+
+  <h3>Checklist</h3>
+  <p class="cl-count" data-clcount="s5"></p>
+  <ul class="checklist" data-checklist="s5"></ul>
+
+  <p class="next-link">Lanjut: <a href="#s6">Topik 6, autoencoder</a>. Sekarang jaringannya tidak punya label, targetnya input itu sendiri.</p>
+</section>
+
+<!-- ============ TOPIK 6 ============ -->
+<section class="topic" id="s6" data-title="6. Autoencoder">
+  <h2><span class="num">6</span>Autoencoder: arsitektur dan tipe</h2>
+  <p class="src">Sumber: S06 (semua slide, termasuk kode slide 12, 16, 24), catatan autoencoder (tipe, kata kunci soal, kerangka essay).</p>
+
+  <div class="note">
+    <p><strong>Catatan sumber.</strong> Halaman Notion "UTS Deep Learning" tidak punya bagian autoencoder, jadi semua isi topik ini dari deck S06 dan screenshot catatan. Hal yang <em>tidak</em> ada di sumber dan jadi <span class="tag">tambahan</span> di sini: contoh hitung angka, alasan trik reparameterization, bentuk tertutup KL divergence, dan cara menentukan threshold anomali. Deck juga tidak memberi rumus lengkap untuk VAE selain yang tertulis di slide 22 dan 23.</p>
+  </div>
+
+  <p class="lead">Jadi intinya: autoencoder itu jaringan unsupervised yang belajar merekonstruksi inputnya sendiri lewat latent yang lebih kecil. Ujian suka nanya dua hal: bentuk arsitektur dan tipe yang cocok. Dua hal itu beda.</p>
+
+  <h3>Intuisi</h3>
+  <ul>
+    <li>Bayangin kamu disuruh meringkas satu bab buku jadi tiga kalimat, lalu temanmu disuruh menulis ulang bab itu cuma dari tiga kalimat tadi. Kalau hasil tulis ulangnya mirip, berarti ringkasanmu memuat hal penting. Itu autoencoder: <strong>encoder</strong> meringkas, <strong>latent</strong> adalah ringkasannya, <strong>decoder</strong> menulis ulang. (analogi: <span class="tag">tambahan</span>)</li>
+    <li>Targetnya input itu sendiri, jadi tidak perlu label. Itu kenapa disebut unsupervised. (S06 slide 6, catatan)</li>
+    <li>Karena latent lebih kecil dari input, model dipaksa menyimpan hanya fitur yang paling penting. Itu yang disebut representation learning.</li>
+  </ul>
+
+  <h3>Mekanisme dan struktur dasar</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Komponen</th><th>Fungsi</th><th>Contoh MNIST 28×28 (catatan)</th></tr></thead>
+      <tbody>
+        <tr><td>Encoder</td><td>Kompres input jadi representasi lebih kecil</td><td>784 → 256 → 32</td></tr>
+        <tr><td>Latent space</td><td>Representasi padat (fitur hasil ekstraksi)</td><td>Vektor 32 dimensi</td></tr>
+        <tr><td>Decoder</td><td>Rekonstruksi input dari latent</td><td>32 → 256 → 784</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Alur: input X → encoder f(·) → latent z → decoder g(·) → rekonstruksi X̂. (catatan, S06 slide 7) Latent = representasi tersembunyi. Latent space = kumpulan semua latent vector. (catatan)</p>
+  <div class="recheck">
+    <p><strong>Cek ulang.</strong> Teks sumber: catatan menulis contoh MNIST <code>784 → 256 → 32</code>. Kode di S06 slide 12 menulis encoder <code>Linear(784, 128), ReLU, Linear(128, 32), ReLU</code> dan decoder <code>Linear(32, 128), ReLU, Linear(128, 784), Sigmoid</code>, yaitu 784 → 128 → 32.</p>
+    <p><span class="tag">tambahan</span> Keduanya sama-sama valid (lebar hidden layer itu pilihan). Pegang polanya: input 784, latent 32, output 784. Kalau soal memberi angka, pakai angka di soal. Widget parameter di bawah punya default 256, silakan ganti ke 128.</p>
+  </div>
+  <p>Slide 3 deck S06 menampilkan outline "BatchNorm, Transfer Learning, ..." yang tampaknya salinan outline session 5, bukan isi sesi autoencoder. Abaikan slide itu. (catatan pembacaan deck)</p>
+
+  <h3>Rumus loss dan artinya</h3>
+  <ul>
+    <li><strong>Reconstruction loss (MSE):</strong> <code>L = (1/n) Σ (xᵢ − x̂ᵢ)²</code> (S06 slide 8). xᵢ = nilai input asli, x̂ᵢ = hasil rekonstruksi, n = jumlah elemen. BCE dipakai untuk piksel di rentang [0, 1]. (catatan)</li>
+    <li>Tujuan: minimalkan reconstruction error, sehingga latent menyimpan informasi penting.</li>
+  </ul>
+  <div class="worked">
+    <p><strong>Contoh hitung loss</strong> <span class="tag">tambahan</span>. Input <code>x = (0,2; 0,8; 0,5)</code>, rekonstruksi <code>x̂ = (0,3; 0,6; 0,5)</code>.</p>
+    <ul>
+      <li>Selisih x − x̂ = (−0,1; 0,2; 0). Kuadrat = (0,01; 0,04; 0). Jumlah = 0,05.</li>
+      <li>MSE = 0,05 / 3 = <strong>0,0167</strong>.</li>
+    </ul>
+    <p><strong>Contoh ukuran parameter</strong> (arsitektur dari kode slide 12, 784 → 128 → 32 → 128 → 784, FC = in × out + out):</p>
+    <ul>
+      <li>Encoder: 784·128 + 128 = 100.480, lalu 128·32 + 32 = 4.128.</li>
+      <li>Decoder: 32·128 + 128 = 4.224, lalu 128·784 + 784 = 101.136.</li>
+      <li>Total = 100.480 + 4.128 + 4.224 + 101.136 = <strong>209.968</strong>. Rasio kompresi = 784 / 32 = 24,5 kali.</li>
+      <li>Versi catatan (784 → 256 → 32 → 256 → 784): 200.960 + 8.224 + 8.448 + 201.488 = <strong>419.120</strong>.</li>
+    </ul>
+  </div>
+
+  <h3>Dipakai untuk apa</h3>
+  <ul>
+    <li><strong>Reduksi dimensi</strong> (seperti PCA tapi nonlinear).</li>
+    <li><strong>Denoising</strong> input yang rusak.</li>
+    <li><strong>Anomaly detection</strong>: error lebih tinggi pada data tidak biasa.</li>
+    <li><strong>Generative modeling</strong> (lewat VAE).</li>
+    <li><strong>Pencarian gambar mirip</strong> lewat kemiripan latent vector. (S06 slide 9, 26, 27)</li>
+  </ul>
+
+  <h3>Arsitektur vs tipe: bedanya apa</h3>
+  <div class="note">
+    <p><strong>Arsitektur</strong> = bentuk jaringan. Berapa besar latent dibanding input, simetris atau tidak, jenis layer.</p>
+    <p><strong>Tipe</strong> = ide atau trik training. Ada noise atau tidak, ada penalti sparsity atau tidak, latent berupa titik atau distribusi.</p>
+    <p>Jadi "undercomplete" itu bentuk arsitektur, sedangkan "denoising" itu tipe.</p>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Bentuk arsitektur</th><th>Latent vs input</th><th>Efek</th></tr></thead>
+      <tbody>
+        <tr><td>Undercomplete</td><td>Latent lebih kecil</td><td>Memaksa kompresi, fitur penting tersimpan. Bentuk dasar vanilla.</td></tr>
+        <tr><td>Overcomplete</td><td>Latent lebih besar atau sama</td><td>Berisiko cuma menyalin input. Perlu bantuan sparsity atau denoising.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Kenapa overcomplete bisa "copy"?</strong> Kalau latent punya ruang sebesar input, jaringan bisa belajar fungsi identitas (output = input) dengan loss mendekati nol tanpa belajar struktur apa pun. Latent kecil mencegah itu karena informasi tidak muat semua. (catatan: model jadi "malas berpikir"; penjelasan identitas: <span class="tag">tambahan</span>) Slide menyebut "avoid overcomplete latent space" dan "latent space too large → just copy input". (S06 slide 30, 31)</p>
+  <p><strong>Harus simetris?</strong> Tidak harus. Simetri itu kebiasaan ("typically" di slide 11). Yang wajib: output decoder berdimensi sama dengan input. Kedalaman, lebar, dan jenis layer encoder dan decoder boleh beda. Contoh: encoder Conv + Pooling, decoder ConvTranspose atau Upsampling <span class="tag">tambahan</span>. Contoh asimetris valid: encoder 784 → 256 → 32, decoder cukup 32 → 784 dengan satu layer. Kalau ditanya, jawab "tidak harus, tapi umumnya simetris karena lebih mudah dirancang dan diseimbangkan". (S06 slide 11, catatan)</p>
+
+  <h3>Tipe autoencoder</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Tipe</th><th>Ide utama</th><th>Detail arsitektur / loss</th><th>Dipakai untuk</th></tr></thead>
+      <tbody>
+        <tr><td>Vanilla</td><td>Rekonstruksi input dasar</td><td>Encoder-decoder, latent kecil, biasanya simetris</td><td>Reduksi dimensi, anomaly detection</td></tr>
+        <tr><td>Denoising</td><td>Input diberi noise, target tetap bersih</td><td>Sama seperti vanilla, plus noise injection saat training</td><td>Bersihin gambar, representasi tahan noise</td></tr>
+        <tr><td>Sparse</td><td>Hanya sedikit neuron latent aktif</td><td><code>L_total = L_recon + λ|z|₁</code>. Boleh overcomplete.</td><td>Fitur interpretable (disentangled)</td></tr>
+        <tr><td>VAE</td><td>Latent berupa distribusi, lalu di-sample</td><td><code>z = μ + σ·ε</code>, ε ~ N(0,1). Loss: reconstruction + KL divergence.</td><td>Generative modeling, interpolasi halus</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Denoising</h4>
+  <p>Kode slide 16: <code>x_noisy = x + noise</code>, <code>output = model(x_noisy)</code>, <code>loss = mse_loss(output, x)</code>. Perhatikan: input berisik, tapi loss dibandingkan dengan <em>x bersih</em>. Itu inti denoising: model belajar membuang noise, bukan menyalinnya. Representasi jadi lebih tahan noise. (slide 15, 16)</p>
+  <div class="worked">
+    <p><strong>Contoh hitung</strong> <span class="tag">tambahan</span>. x = (0,2; 0,8), noise = (0,1; −0,2), jadi x_noisy = (0,3; 0,6). Misal output model = (0,25; 0,75).</p>
+    <ul>
+      <li>Loss ke x bersih: ((0,25 − 0,2)² + (0,75 − 0,8)²) / 2 = (0,0025 + 0,0025) / 2 = <strong>0,0025</strong>.</li>
+      <li>Kalau salah dibandingkan ke x_noisy: ((0,25 − 0,3)² + (0,75 − 0,6)²) / 2 = (0,0025 + 0,0225) / 2 = 0,0125. Model malah dihukum karena membuang noise.</li>
+    </ul>
+  </div>
+
+  <h4>Sparse</h4>
+  <p>Penalti <code>L_total = L_reconstruction + λ|z|₁</code> (slide 19). |z|₁ adalah jumlah nilai absolut elemen latent, λ mengatur kuatnya penalti. Efeknya hanya sedikit neuron latent yang aktif, meniru neuron biologis yang kebanyakan diam, dan membantu fitur disentangled dan interpretable (slide 18). Catatan menyebut penalti umumnya L1.</p>
+  <div class="worked">
+    <p><strong>Contoh hitung</strong> <span class="tag">tambahan</span>. z = (0; 0,5; 0; −0,3; 0), jadi |z|₁ = 0,8. λ = 0,1 → penalti = 0,08. L_recon = 0,05 → L_total = 0,05 + 0,08 = <strong>0,13</strong>. Model dapat mengurangi loss dengan mendorong elemen z ke 0.</p>
+  </div>
+
+  <h4>VAE</h4>
+  <ul>
+    <li>Motivasi: bikin latent space kontinu dan generatif. Belajar menyampel dari distribusi, bukan satu titik. Memungkinkan interpolasi halus dan generasi data. (slide 21)</li>
+    <li>Latent: <code>z = μ + σ·ε</code>, ε ~ N(0,1). Encoder mengeluarkan μ dan σ (atau log-variance), decoder menerima z. (slide 22)</li>
+    <li>Loss slide 23: <code>L = E(|x − x̂|²) + D_KL(q(z|x) ‖ p(z))</code>. Bacanya: rekonstruksi plus jarak distribusi latent ke prior. (slide 23; di teks ekstraksi tertulis q(z, x), dibaca sebagai q(z|x))</li>
+    <li>Kode slide 24: <code>mu, logvar = encoder(x)</code>, <code>std = torch.exp(0.5 * logvar)</code>, <code>eps = torch.randn_like(std)</code>, <code>z = mu + eps * std</code>, <code>output = decoder(z)</code>. Jadi encoder mengeluarkan <strong>log-variance</strong>, bukan σ langsung.</li>
+  </ul>
+  <div class="worked">
+    <p><strong>Contoh hitung</strong> <span class="tag">tambahan</span>. μ = 0,5, σ = 0,2 (jadi variance 0,04, logvar = ln 0,04 = −3,2189), ε = −1.</p>
+    <ul>
+      <li>std = exp(0,5 · logvar) = exp(−1,6094) = <strong>0,2</strong>. Cocok dengan σ.</li>
+      <li>z = μ + ε · std = 0,5 + (−1)(0,2) = <strong>0,3</strong>.</li>
+      <li>KL ke N(0,1), bentuk tertutup Gaussian <code>½(σ² + μ² − 1 − ln σ²)</code> = ½(0,04 + 0,25 − 1 + 3,2189) = ½ · 2,5089 = <strong>1,2544</strong>.</li>
+    </ul>
+    <p>Kenapa z ditulis μ + σ·ε? Mengambil sampel langsung dari N(μ, σ²) tidak bisa dilewati gradient. Dengan memindahkan keacakan ke ε (yang tidak punya parameter), z menjadi fungsi mulus dari μ dan σ, jadi backprop bisa menyentuh encoder. (alasan: <span class="tag">tambahan</span>, standar textbook, slide cuma menulis rumusnya)</p>
+  </div>
+
+  <h3>Pilih tipe dari kata kunci soal (catatan)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Kata kunci</th><th>Tipe</th><th>Alasan</th></tr></thead>
+      <tbody>
+        <tr><td>deteksi anomali, sensor industri, fraud</td><td>Vanilla</td><td>Data normal terekonstruksi baik, anomali error-nya tinggi</td></tr>
+        <tr><td>noise, gambar rusak/buram, tahan noise</td><td>Denoising</td><td>Dilatih menghilangkan noise</td></tr>
+        <tr><td>latent besar/overcomplete, fitur interpretable, sedikit neuron aktif</td><td>Sparse</td><td>Penalti sparsity cegah copy</td></tr>
+        <tr><td>generate sampel baru, interpolasi, latent kontinu</td><td>VAE</td><td>Latent berupa distribusi yang bisa di-sample</td></tr>
+        <tr><td>reduksi dimensi nonlinear</td><td>Vanilla</td><td>Versi nonlinear dari PCA</td></tr>
+        <tr><td>pencarian gambar mirip</td><td>Vanilla (pakai latent-nya)</td><td>Kemiripan dihitung dari latent vector</td></tr>
+        <tr><td>"ada label"</td><td>Bukan autoencoder</td><td>AE itu unsupervised</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="widget" id="w-ae">
+    <h4>Widget: ukuran bottleneck dan hasil rekonstruksi</h4>
+    <p class="hint"><span class="tag">tambahan</span> Ini ilustrasi, bukan autoencoder yang dilatih. Sinyal 16 titik dikompres dengan DCT dan hanya k koefisien dipakai sebagai "latent". Idenya sama: latent kecil = informasi hilang, latent sebesar input = bisa menyalin semuanya, termasuk noise.</p>
+    <div class="controls">
+      <label>Ukuran latent k <output id="ae-k-o">6</output>
+        <input type="range" id="ae-k" min="1" max="24" step="1" value="6">
+      </label>
+      <label>Noise pada input <output id="ae-n-o">0.30</output>
+        <input type="range" id="ae-n" min="0" max="0.6" step="0.05" value="0.3">
+      </label>
+    </div>
+    <svg class="plot" id="ae-plot" viewBox="0 0 480 240" role="img" aria-label="Sinyal bersih, input berisik, dan hasil rekonstruksi"></svg>
+    <p class="hint">Garis putus-putus = sinyal bersih (target denoising). Garis tipis = input (berisik). Garis tebal = rekonstruksi.</p>
+    <div class="readout" id="ae-read" aria-live="polite"></div>
+  </div>
+
+  <div class="widget" id="w-aep">
+    <h4>Widget: hitung parameter autoencoder fully connected</h4>
+    <p class="hint">Isi ukuran tiap layer dari input sampai output, dipisah koma. Parameter layer FC = in × out + out <span class="tag">tambahan</span>.</p>
+    <div class="controls">
+      <label>Ukuran layer <input type="text" id="aep-in" value="784, 256, 32, 256, 784"></label>
+    </div>
+    <div class="readout err" id="aep-err" aria-live="polite" hidden></div>
+    <div class="table-wrap"><table id="aep-table"></table></div>
+    <div class="readout" id="aep-read" aria-live="polite"></div>
+  </div>
+
+  <h3>AE vs PCA (S06 slide 28)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Aspek</th><th>PCA</th><th>Autoencoder</th></tr></thead>
+      <tbody>
+        <tr><td>Tipe</td><td>Linear</td><td>Nonlinear</td></tr>
+        <tr><td>Fleksibilitas</td><td>Rendah</td><td>Tinggi</td></tr>
+        <tr><td>Butuh label?</td><td>Tidak</td><td>Tidak</td></tr>
+        <tr><td>Bisa merekonstruksi?</td><td>Ya</td><td>Ya</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Jebakan umum (S06 slide 30, 31, catatan)</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Jebakan</th><th>Akibat</th><th>Solusi</th></tr></thead>
+      <tbody>
+        <tr><td>Latent terlalu besar</td><td>Cuma menyalin input</td><td>Latent lebih kecil, atau sparse / denoising</td></tr>
+        <tr><td>Tanpa noise</td><td>Overfit ke contoh training</td><td>Denoising</td></tr>
+        <tr><td>Output tidak di-clamp</td><td>Nilai piksel keluar rentang</td><td>Sigmoid di output untuk piksel [0, 1]</td></tr>
+        <tr><td>Input tidak dinormalisasi</td><td>Training tidak stabil</td><td>Normalisasi ke [0, 1]</td></tr>
+        <tr><td>Tidak pantau validation loss</td><td>Overfitting tidak terdeteksi</td><td>Pantau validation reconstruction loss</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="trap">
+    <p><strong>Jebakan ujian:</strong></p>
+    <ul>
+      <li>Ditanya "bentuk arsitektur" tapi dijawab "denoising" (itu tipe). Atau sebaliknya.</li>
+      <li>"Autoencoder harus simetris" → salah. Yang wajib cuma dimensi output decoder = dimensi input.</li>
+      <li>Latent lebih besar atau sama dengan input pada vanilla → risiko copy, bukan fitur bagus.</li>
+      <li>Denoising: target tetap input <em>bersih</em>, bukan input berisik.</li>
+      <li>Soal menyebut "ada label" → bukan autoencoder.</li>
+      <li>Anomali ditandai dari reconstruction error tinggi, jadi model dilatih hanya pada data normal.</li>
+      <li>Piksel [0, 1] → Sigmoid di output, bukan ReLU.</li>
+    </ul>
+  </div>
+
+  <h3>Kapan pakai apa</h3>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Situasi</th><th>Pilihan</th></tr></thead>
+      <tbody>
+        <tr><td>Kompres fitur / deteksi anomali dengan data normal saja</td><td>Vanilla undercomplete</td></tr>
+        <tr><td>Data kotor atau berisik, butuh representasi tahan noise</td><td>Denoising</td></tr>
+        <tr><td>Latent besar tapi mau fitur interpretable</td><td>Sparse</td></tr>
+        <tr><td>Mau generate sampel baru atau interpolasi</td><td>VAE (atau model generatif lain, lihat <a href="#s4">topik 4</a>)</td></tr>
+        <tr><td>Hubungan data linear, mau cepat dan simpel</td><td>PCA <span class="tag">tambahan</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Latihan</h3>
+  <div class="quiz" data-quiz="s6"></div>
+
+  <h3>Soal gaya kisi-kisi</h3>
+  <details>
+    <summary>Pabrik mau deteksi sensor rusak tanpa data berlabel. Rancang arsitektur autoencoder dan pilih tipenya.</summary>
+    <div>
+      <ol>
+        <li><strong>Model:</strong> autoencoder, karena data tidak berlabel (unsupervised).</li>
+        <li><strong>Tipe:</strong> vanilla, atau denoising kalau data sensor sering berisik.</li>
+        <li><strong>Arsitektur:</strong> encoder kompres input ke latent kecil (undercomplete), decoder rekonstruksi input. Simetris itu umum tapi tidak wajib.</li>
+        <li><strong>Training:</strong> latih hanya pada data normal dengan reconstruction loss, pantau validation loss.</li>
+        <li><strong>Deteksi:</strong> data dengan reconstruction error di atas threshold dianggap anomali.</li>
+      </ol>
+      <p><span class="tag">tambahan</span> Threshold sering ditentukan dari distribusi error data normal, misal mean + 3 × std. Contoh: error normal rata-rata 0,016 dengan std 0,004 → threshold = 0,016 + 3 × 0,004 = 0,028. Sensor dengan error 0,4 jelas anomali.</p>
+    </div>
+  </details>
+  <details>
+    <summary>Jelaskan perbedaan undercomplete dan overcomplete, dan kenapa overcomplete berisiko.</summary>
+    <div>
+      <p>Undercomplete: latent lebih kecil dari input, memaksa kompresi sehingga fitur penting tersimpan. Overcomplete: latent lebih besar atau sama dengan input, berisiko cuma menyalin input tanpa belajar. Perlu bantuan sparsity atau denoising.</p>
+    </div>
+  </details>
+  <details>
+    <summary>Apa beda denoising, sparse, dan VAE?</summary>
+    <div>
+      <p>Denoising: input diberi noise, target tetap bersih, representasi tahan noise. Sparse: penalti λ|z|₁ pada latent supaya hanya sedikit neuron aktif, fitur interpretable, boleh overcomplete. VAE: latent berupa distribusi (z = μ + σ·ε), loss reconstruction + KL divergence, bisa generate dan interpolasi.</p>
+    </div>
+  </details>
+
+  <h3>Checklist</h3>
+  <p class="cl-count" data-clcount="s6"></p>
+  <ul class="checklist" data-checklist="s6"></ul>
+
+  <p class="next-link">Lanjut: <a href="#rumus">Rumus cepat</a> untuk ringkasan semua rumus yang dipakai di calculator.</p>
+</section>
+
+<!-- ============ RUMUS ============ -->
+<section class="topic" id="rumus" data-title="Rumus cepat">
+  <h2>Rumus cepat buat calculator</h2>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Topik</th><th>Rumus</th></tr></thead>
+      <tbody>
+        <tr><td>Perceptron</td><td><code>ŷ = sign(wᵀx + b)</code>; MLP: <code>z = Wx + b</code>, <code>a = σ(z)</code></td></tr>
+        <tr><td>Gradient descent</td><td><code>θ ← θ − η ∇θ L</code></td></tr>
+        <tr><td>L2 / L1</td><td><code>L + λ Σ w²</code> / <code>L + λ Σ |w|</code></td></tr>
+        <tr><td>Precision, Recall</td><td><code>TP/(TP+FP)</code>, <code>TP/(TP+FN)</code></td></tr>
+        <tr><td>F1</td><td><code>2·P·R / (P + R)</code> <span class="tag">tambahan</span> (bentuk harmonic mean)</td></tr>
+        <tr><td>Accuracy</td><td><code>(TP+TN) / total</code></td></tr>
+        <tr><td>MSE, MAE</td><td><code>(1/n)Σ(y−ŷ)²</code>, <code>(1/n)Σ|y−ŷ|</code></td></tr>
+        <tr><td>R²</td><td><code>1 − SS_res / SS_tot</code> <span class="tag">tambahan</span></td></tr>
+        <tr><td>BCE, CE</td><td><code>−(y log ŷ + (1−y) log(1−ŷ))</code>, <code>−Σ yᵢ log ŷᵢ</code></td></tr>
+        <tr><td>Conv output</td><td><code>(W − F + 2P)/S + 1</code>; channel = K</td></tr>
+        <tr><td>Conv params</td><td><code>(F_h·F_w·C_in + 1)·K</code></td></tr>
+        <tr><td>Flatten, FC</td><td><code>C·H·W</code>; <code>in·out + out</code> <span class="tag">tambahan</span></td></tr>
+        <tr><td>GAN</td><td><code>L_D = −E[log D(x)] − E[log(1−D(G(z)))]</code>; <code>L_G = −E[log D(G(z))]</code></td></tr>
+        <tr><td>Autoencoder</td><td><code>L = (1/n)Σ(x−x̂)²</code>; sparse: <code>+ λ|z|₁</code>; VAE: <code>z = μ + σ·ε</code> + KL</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="row">
+    <button type="button" class="ghost" id="reset-progress">Reset semua checklist</button>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p>Dibuat dari slide session 01 sampai 07, catatan pribadi, dan halaman Notion "UTS Deep Learning". Ilustrasi dan widget bertanda "tambahan" bukan dari slide. Kotak "cek ulang" menandai kalimat sumber yang perlu dikonfirmasi. Cek ulang sama dosen kalau ragu.</p>
+</footer>
+
+<script src="app.js"></script>
+<script>
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById('theme-toggle');
+    function sync() {
+      var dark = root.getAttribute('data-theme') !== 'light';
+      btn.textContent = dark ? 'Light mode' : 'Dark mode';
+      btn.setAttribute('aria-pressed', dark ? 'true' : 'false');
+    }
+    btn.addEventListener('click', function () {
+      var next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+      root.setAttribute('data-theme', next);
+      try { localStorage.setItem('uts-theme', next); } catch (e) { /* storage blocked */ }
+      sync();
+    });
+    sync();
+  })();
+</script>
+</body>
+</html>
